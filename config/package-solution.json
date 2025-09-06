@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "chs-module-client-side-solution",
+    "id": "1cb1bc9f-2308-48db-afba-d7e9275b58d8",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true
+  },
+  "paths": {
+    "zippedPackage": "solution/chs-module.sppkg"
+  }
+}

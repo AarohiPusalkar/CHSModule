@@ -1,0 +1,11 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "isCreatingSolution": true,
+    "environment": "onprem19",
+    "version": "1.10.0",
+    "libraryName": "chs-module",
+    "libraryId": "1cb1bc9f-2308-48db-afba-d7e9275b58d8",
+    "packageManager": "npm",
+    "componentType": "webpart"
+  }
+}

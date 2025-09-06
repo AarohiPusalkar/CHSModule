@@ -1,0 +1,227 @@
+// .ms-Pivot{
+//     border-bottom: 1px solid #ddd !important;
+// }
+.ms-FocusZone ul{
+    border-bottom: 1px solid #ddd !important;
+}
+.ms-Pivot .ms-Button{
+    background-color: #fff !important;
+   //color: #000 !important;
+    border-radius: 4px !important;
+    margin: auto 3px;
+    font-size: 14px !important;
+}
+.ms-Pivot .linkIsSelected{
+    border-top: 1px solid #ddd !important;
+    border-left: 1px solid #ddd !important;
+    border-right: 1px solid #ddd !important;
+    border-bottom: none !important;
+}
+.root_4ae20aba.rootIsTabs_4ae20aba .link_4ae20aba.linkIsSelected_4ae20aba {
+    border-top: 1px solid #ddd !important;
+    border-left: 1px solid #ddd !important;
+    border-right: 1px solid #ddd !important;
+    border-bottom: none !important;
+    color: #555 !important;
+}
+.link_4ae20aba.linkIsSelected_4ae20aba::before {
+   
+    border-bottom: none !important;
+}
+.root_4ae20aba.rootIsTabs_4ae20aba .link_4ae20aba {
+   
+    color: #23527c;
+    
+}
+.root_4ae20aba .link_4ae20aba:hover{
+    background-color: #eee !important;
+    border-radius: 4px !important;
+    color: #23527c!important;
+}
+
+
+.link_4ae20aba.linkIsSelected_4ae20aba:hover{
+    background-color: #fff !important;
+    
+}
+.btn-primary {
+  
+    background-color: #337ab7 !important;
+    border-color: #357ebd;
+    border-radius: 4px;
+    padding: 19px 20px !important;
+    box-shadow: inset 0px 1px 0px 0px #04203d;
+}
+.tablink{
+    background-color: transparent !important;
+    color: #337ab7 !important;
+    border-right: 1px solid #ddd !important;
+    margin: 0 !important;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 10px !important;
+    width: 100% !important;
+    }
+.tabnav_1ulFE7DW{
+    margin-top: 14px;
+}
+.tablink.active {
+    
+    font-weight: bold;
+    color: #888!important;
+    border-right: none !important;
+    border-top: 1px solid #ddd !important;
+    border-bottom: 1px solid #ddd !important;
+    border-left: 1px solid #ddd !important;
+  }
+  .CanvasZone {
+    max-width: 100% !important;
+    padding:0 !important;
+  }
+  .content_5014a39f {
+
+    padding: 0 !important;
+}
+.tablink:hover{
+    background-color: #eee !important;
+}
+// .ms-Pivot{
+//     margin-top: -41px;
+// }
+.root-81{
+    color: #337ab7 !important;
+    font-weight: 600;
+    font-size: 17px;
+}
+.table th{
+    border-top: none !important;
+}
+.table td{
+    padding: 1rem .75rem !important;
+
+}
+.tab-box{
+    border: 1px solid rgb(221, 221, 221);
+    border-radius: 4px;
+    margin-top: 15px;
+    padding: 10px 15px;
+}
+.pl-0{
+    padding-left: 0 !important;
+}
+.plr-5{
+    margin:0 auto 15px auto !important;
+}
+.title_2c6be29e.titleIsPlaceHolder_2c6be29e {
+    color: #666666;
+    border-radius: 3px;
+    height: 35px;
+}
+.HAD {   
+    border: 1px solid #dedede;
+}
+.root-139 {
+    width: 0 !important;
+}
+.title_2c6be29e {
+    
+    height: 36px !important;
+    border-color: #d9d9d9 #ccc #b3b3b3 !important;
+    border-radius: 4px !important;
+    color:#d9d9d9 #ccc #b3b3b3 !important;
+}
+.ms-Dropdown-container .root-81 {
+    color: #666666 !important;
+    font-size: 11px  !important;
+}
+.fieldGroup_cd8a9909{
+    height: 36px !important;
+    border-color: #d9d9d9 #ccc #b3b3b3 !important;
+    border-radius: 4px !important;
+    color:#d9d9d9 #ccc #b3b3b3 !important;
+}
+.title-156,
+.title-165,
+.ms-Dialog-title {
+    color: #777 !important;
+    text-align: center;
+    font-weight: 600;
+}
+.root-167 ,
+.text-center .ms-Button{
+    margin-top: 15px;
+    padding: 6px 12px !important;
+    background-color: #337ab7 !important;
+    border: #337ab7 !important;
+    box-shadow: inset 0px 1px 0px 0px #04203d;
+    border-radius: 4px !important;
+}
+/*css for top menu prod*/
+.ms-compositeHeader {
+   padding:10px !important;
+    background: #36A6AD !important;
+}
+.ms-HorizontalNavItem .ms-HorizontalNavItem-link,.link-81 {
+    color: #fff !important;
+    font-size: 14px !important;
+}
+.ms-HorizontalNav-chevronDown{
+    color: #fff !important;
+}
+.ms-HorizontalNavItem:hover{    background: #000;
+
+}
+.ms-HorizontalNavItem{ 
+    padding: 2px 13px 2px 13px;
+    border-right: 1px solid #fff;
+    margin-right: auto !important;
+}
+.ms-HorizontalNavItem-link:hover{
+    text-decoration: none !important;
+}
+.ms-ContextualMenu-link {
+    height: auto !important;
+
+}
+.ms-Callout-main{
+    padding:10px;
+}
+.ms-ContextualMenu.ms-FocusZone {
+    background-color: #49636a !important;
+}
+.ms-HorizontalNav .ms-ContextualMenu-itemText{
+    color:#fff !important;
+    font-size: 14px !important;
+}
+.ms-ContextualMenu-link:hover{
+    background-color: #49636A !important;
+    border: none !important;
+}
+.ms-ContextualMenu-item:focus-visible,
+.ms-ContextualMenu-itemText:focus-visible{
+    outline: none!important;
+    border: none!important;
+}
+.ms-ContextualMenu-item>div{
+    outline: none!important;
+}
+.panelbodybox{
+    border: 1px solid #dedede;
+    padding: 15px;
+    /* margin-top: 13px; */
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+}
+.pageContainer,
+.leftMargin {
+    left: 0 !important;
+  }
+  .commentsWrapper{ display:none !important;}
+  
+:global{
+    .pageContainer,
+.leftMargin {
+    left: 0 !important;
+  }
+  .commentsWrapper{ display:none !important;}
+} 

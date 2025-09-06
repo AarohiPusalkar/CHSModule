@@ -1,0 +1,701 @@
+@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
+
+.chsModule {
+  .container {
+    max-width: 700px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .row {
+    @include ms-Grid-row;
+    @include ms-fontColor-white;
+    background-color: $ms-color-themeDark;
+    padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg10;
+    @include ms-xl8;
+    @include ms-xlPush2;
+    @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-white;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    //font-family: "Segoe UI WestEuropean","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+  }
+  .bottomborder{
+    border-bottom: 'thin double #337ab7';
+  }
+}
+.bottomborder{
+  border-bottom: thin double #337ab7;
+}
+header{
+  background: #a1c8e9;
+  height: 60px;
+  width: 100%;
+  padding: 5px 0px;
+}
+.logo{
+  padding: 5px;
+}
+.logo img{
+// max-height: 40px;
+width: 181px;
+    padding-top: 3px; 
+}
+.txt-center{text-align: center !important;}
+.header{
+  display: flex;
+  align-items: center;
+}
+.userimg img{
+  border-radius: 50%;
+  height: 45px;
+  width: 45px;
+  padding: 5px;
+}
+.center{
+  align-items: center;  
+  display: flex;
+}
+.center > div > div{
+  border-radius: 20px;
+}
+.center span{
+  color: #fff;
+  padding-right: 7px;
+}
+.pagination ul{
+  list-style: none;  
+  display: flex;  
+  align-items: center;
+  justify-content: center;
+
+}
+.txt-center{text-align: center;}
+.flex-row ul li{
+  padding-left: 50px;
+}
+.usernamesection{
+  margin-top: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // margin-left: -20px;
+  // margin-left: 30px;
+  
+}
+.usernamesection span{
+  color: #fff;
+}
+.lbluser{
+  overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.noteModuleSection {
+  overflow: hidden;
+  // padding: 1em;
+  padding: 0em;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+.icon {
+  color: #ed8933;
+  font-size: 15px;
+}
+
+.header-style {
+  text-transform: uppercase; /* Convert text to uppercase */
+  font-weight: bold;        /* Make text bold */
+  margin-bottom: 5px;       /* Space between header and value */
+  font-size: 14px;          /* Optional: Font size adjustment */
+  color: #003366;           /* Optional: Custom header color */
+}
+
+#workbenchPageContent{
+  max-width: 100% !important;
+}
+
+
+
+
+:global {
+  #workbenchPageContent{
+    max-width: 100% !important;
+  }
+
+  #pageHeader {
+
+    display: none !important;
+}
+.pageContainer,
+.leftMargin {
+    left: 0 !important;
+  }
+  .commentsWrapper{ display:none !important;}
+div[data-automation-id="pageHeader"] {
+  display: none !important;
+}
+
+div[class="ms-compositeHeader-mainLayout"] {
+  display: none !important;
+}
+
+div[role="complementary"] {
+  display: none !important;
+}
+.pageContainer{
+  left: 0 !important;
+}
+.commentsWrapper{ display:none !important;}
+
+}
+.pettyCash {
+ 
+  .container {
+    max-width: 1280px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  }
+
+
+  #pageHeader {
+   
+    display: none !important;
+}
+
+.ms-compositeHeader-mainLayout {
+  display: -ms-flexbox;
+  display: flex ;
+  height: 66px;
+  display: none;
+}
+
+  .row {
+    @include ms-Grid-row;
+   // @include ms-fontColor-white;
+    //background-color: $ms-color-themePrimary;
+   // background-color: "[theme: themePrimary, default: #0078d7]";
+    padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg12;
+    @include ms-xl12;
+    // @include ms-xlPush2;
+    // @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-blue;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    //font-family: "Segoe UI WestEuropean","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+  }
+
+  .table{
+    width: 100%;
+  }
+
+
+}
+
+.textDialog{
+  width: 80% !important;
+  max-width: 100% !important;
+  border-radius: 4px;
+}
+.custombtn{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+.custombtn:hover{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.custombtn:visited{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+
+
+
+@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
+:global {
+  #workbenchPageContent{
+    max-width: 100% !important;
+  }
+  
+}
+.pettyCash {
+ 
+  .container {
+    max-width: 1280px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .row {
+    @include ms-Grid-row;
+   // @include ms-fontColor-white;
+    //background-color: $ms-color-themePrimary;
+   // background-color: "[theme: themePrimary, default: #0078d7]";
+    padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg12;
+    @include ms-xl12;
+    // @include ms-xlPush2;
+    // @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-blue;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    //font-family: "Segoe UI WestEuropean","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+  }
+
+  .table{
+    width: 100%;
+  }
+
+
+}
+
+.textDialog{
+  width: 80% !important;
+  max-width: 100% !important;
+  border-radius: 4px;
+}
+.custombtn{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+.custombtn:hover{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.custombtn:visited{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+
+.dropdown-style {
+  width: 100%;
+}
+
+.control-Label {
+  display: flex;
+  align-items: center;
+}
+
+
+@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
+
+:global {
+  #workbenchPageContent{
+    max-width: 100% !important;
+  }
+
+  .tabcontent {    
+    display: none;      
+  }
+  .active{display: block;}
+  .tablink:hover {
+    background-color: #777;
+  }
+  // css for hide 
+.ms-searchux-searchbox,
+.ms-Nav{
+  display: none !important;
+}
+.canvasSpacerSection[class*="Spacer"],
+.commentsWrapper {
+  display: none !important;
+}
+
+.leftMargin {
+  left: 0 !important;
+}
+.pageContainer_5a558a10, .container_5a558a10, .pageContainer_b5013a39,
+.leftMargin {
+  left: 0 !important;
+}
+.canvasSpacerSection_d7783ea9,
+.commentsWrapper_20a83814
+{
+  display: none !important;
+}
+.pageContainer[class*="Spacer"]{
+  left: 0 !important;
+}
+}
+.pettyCash {
+ 
+  .container {
+    max-width: 1280px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .row {
+    @include ms-Grid-row;
+   // @include ms-fontColor-white;
+    //background-color: $ms-color-themePrimary;
+   // background-color: "[theme: themePrimary, default: #0078d7]";
+    padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg12;
+    @include ms-xl12;
+    // @include ms-xlPush2;
+    // @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-blue;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family: "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    //font-family: "Segoe UI WestEuropean","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+  }
+
+  .table{
+    width: 100%;
+  }
+
+ 
+
+}
+
+.textDialog{
+  width: 80% !important;
+  max-width: 100% !important;
+  border-radius: 4px;
+}
+.custombtn{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+.custombtn:hover{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.custombtn:visited{
+  color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+ 
+.tabcontent {
+  color: white;
+  display: none;
+  padding: 100px 20px;
+  
+}
+.tablink:hover {
+  background-color: #777;
+}
+
+.tabnav button{  
+  display: block;
+  margin: 10px 0;
+  background: #2e6da4;
+  color: #fff;
+  padding: 13px;
+  outline: 0;
+  width: 143px;
+  border-color: #2e6da4;
+  border: 0px;
+}
+.panelbody{
+  border: 1px solid #dedede;
+  padding: 15px;
+  margin-top: 13px;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+}
+.iconcolor{
+  font-weight: 700;
+    font-size: 20px;
+    color: #337ab7;
+}
+.btnprimary {
+  color: #fff;
+  background-color: #298cc6;
+  border-color: #298cc6;
+} 
+// #Home {background-color: red;}
+// #News {background-color: green;}
+// #Contact {background-color: blue;}
+// #About {background-color: orange;}
+/*new css for tab*/
+.tablink {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  border: none;
+  outline: none;
+  transition: 0.3s;
+}
+
+.tablink.active {
+  background-color: #ccc;
+  font-weight: bold;
+}
+
+.tabcontent {
+  display: none;
+  padding: 10px;
+}
+
+.tabcontent.active {
+  display: block;
+}
+.verticalPivotStyles{
+  display:flex;
+
+} 
+// .displaynone{
+//   display: none !important;
+// }
+.verticalTabsContainer {
+  display: flex;
+}
+
+.tabList {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  border-right: 1px solid #ccc;
+}
+
+.tabItem {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #f3f3f3;
+}
+
+.tabItem:hover {
+  background-color: #e0e0e0;
+}
+
+.activeTab {
+  background-color: #d0d0d0;
+  font-weight: bold;
+}
+
+.tabContent {
+  margin-left: 20px;
+  padding: 10px;
+  flex-grow: 1;
+}
