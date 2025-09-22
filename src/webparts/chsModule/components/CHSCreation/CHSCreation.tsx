@@ -1793,14 +1793,14 @@ if(this.state.OnBehalf == "Yes"){
                 <PrimaryButton className='btn-primary' style={{ marginLeft: "10px" }} text="Report for Age-based Health Checkup" onClick={this.exportToExcel} hidden={!showReportButton} />
               </div>
 
-              <Pivot selectedKey={this.state.selectedOuterTab || "User"}
+              <Pivot selectedKey={this.state.selectedOuterTab || "User"} 
                 onLinkClick={(item) => this.setState({ selectedOuterTab: item.props.itemKey })}
                 linkSize={PivotLinkSize.large} linkFormat={PivotLinkFormat.tabs}>
 
                 <PivotItem headerText="User Dashboard" itemKey="User" hidden={!this.state.ShowHRTab} className="tab-box"  >
                   <div className="row">
                     <div className={`${styles.tabnav} col-md-2`}>
-                      <button
+                      <button 
                         className={`tablink ${this.state.activeHRdashTab === 'Pending' ? 'active' : ''}`}
                         onClick={() => this.openHRInnerTab('Pending')}
                       >
