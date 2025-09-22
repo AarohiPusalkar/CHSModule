@@ -17,7 +17,11 @@ export interface IEmployeeMaster{
     SubGroup:string,
     SubGroupId:any,
     Unit:string,
-    EmployeeType:string,
+    EmployeeType:{
+        Title:string,
+        Id:number
+    },
+
     Scale:string,
     Grade:string,
     GradeId:any,

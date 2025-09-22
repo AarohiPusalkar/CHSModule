@@ -57,7 +57,7 @@ export default function EmployeeOps() {
                     SubGroup: firstResult.CurrentOfficeLocation,
                     SubGroupId: firstResult.SubGroupId,
                     Unit: firstResult.Unit,
-                    EmployeeType: firstResult.EmployeeType,
+                    EmployeeType: firstResult.EmployeeType?firstResult.EmployeeType.Title :'',
                     Scale: firstResult.Scale?firstResult.Scale.Title:'',
                     Payscale: firstResult.Payscale?firstResult.Payscale.Title:'',
                     Grade: firstResult.Grade,
@@ -766,7 +766,7 @@ export default function EmployeeOps() {
             , "*,Attachments,AttachmentFiles,HR2ApproverName/Name,HR2ApproverName/Name"
             , "AttachmentFiles,HR2ApproverName,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}' and  HR1ApproverName/Name eq '${currentUser.LoginName}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -846,7 +846,7 @@ export default function EmployeeOps() {
             , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `HR2Response eq '${status}'`
-            , `HR2Response eq '${HR2Status}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}' and  HR2ApproverName/Name eq  '${currentUser.LoginName}' and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
+            , `HR2Response eq '${HR2Status}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -1001,7 +1001,7 @@ export default function EmployeeOps() {
             , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
             , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}'  and  HR2ApproverName/Name eq '${currentUser.LoginName}'  and HR1ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}'   and HR1ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {

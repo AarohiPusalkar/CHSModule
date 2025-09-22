@@ -421,7 +421,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     return await EmployeeOps().getEmployeeMaster(this.props).then(async (results) => {
       let employeeData = results;
       let limitData: IEmployeeCHSLimitMaster[] = await this.GetEmployeelimit();
-      let matchedLimit = limitData.filter((e) => e.Scale.Title == employeeData.Scale && e.Designation.Title == employeeData.DesignationTitle && e.EmployeeType == employeeData.EmpType);
+      let matchedLimit = limitData.filter((e) => e.Scale.Title == employeeData.Scale && e.Designation.Title == employeeData.DesignationTitle && e.EmployeeType == employeeData.EmployeeType.Title);
       debugger;
       this.setState({
         EmployeeInfodb: employeeData,
@@ -443,7 +443,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         DateofBirth: employeeData.DateofBirth,
         Scale: employeeData.Scale,
         Age: parseInt(employeeData.Age),
-        EmpType: employeeData.EmpType,
+        EmpType: employeeData.EmployeeType,
+        EmployeeType: employeeData.EmployeeType,
+
         Limit: matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : "",
         // GradeId: employeeData.GradeId,
         // CurrentOfficeLocationId: employeeData.CurrentOfficeLocationId,
@@ -496,7 +498,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             Scale: selectedEmp.Scale.Title,
             Payscale: selectedEmp.Payscale.Title,
             Age: parseInt(selectedEmp.Age),
-            EmpType: selectedEmp.EmployeeType.Title,
+            EmployeeType: selectedEmp.EmployeeType.Title,
             DependentType: "",
             ActualClaimAmountLable: "",
             selectedOption: e,
@@ -758,7 +760,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       let ActualClaimAmountLable;
       const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
       const scaleValue = this.state.Scale;
-      if (this.state.EmpType != 'RETIRED') {
+      if (this.state.EmployeeType.Title != 'RETIRED') {
         if (this.state.Scale !== "GOVT") {
           const numberOnlyScale = parseFloat(scaleValue.match(/\d+$/)[0]);
           if (this.state.Age < 40 && numberOnlyScale <= 5) {
@@ -813,7 +815,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         }
       }
-      if (this.state.EmpType == 'RETIRED') {
+      if (this.state.EmployeeType.Title == 'RETIRED') {
         const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
         const Scale5LIMITSelf1 = (Scale5LIMITSelf) * 0.9;
         ActualClaimAmountLable = Scale5LIMITSelf1;
@@ -1015,7 +1017,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         OnBehalf: this.state.OnBehalf,
         EmployeeID: this.state.EmployeeID,
         Scale: this.state.Scale,
-        EmployeeType: this.state.EmpType,
+        EmployeeType: this.state.EmployeeType.Title,
         DependentType: this.state.DependentType,
         Status: "Pending",
         HR1Response: "Pending with HR1",
@@ -1041,14 +1043,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       dashTab = "Approved";
 if(this.state.OnBehalf == "Yes"){
   let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-  if ( this.state.EmpType == "RETIRED") {
+  if ( this.state.EmployeeType.Title == "RETIRED") {
     hrApprovedAmount = this.state.TotalAmountClaimed
   }
   CHSRequestItem = {
     OnBehalf: this.state.OnBehalf,
     EmployeeID: this.state.EmployeeID,
     Scale: this.state.Scale,
-    EmployeeType: this.state.EmpType,
+    EmployeeType: this.state.EmployeeType.Title,
     DependentType: this.state.DependentType,
     Status: "Approved",
     HR1Response: "Approved by HR1",
@@ -1081,7 +1083,7 @@ if(this.state.OnBehalf == "Yes"){
       dashTab = "Approved";
 if(this.state.OnBehalf == "Yes"){
       let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-      if ( this.state.EmpType == "RETIRED") {
+      if ( this.state.EmployeeType.Title == "RETIRED") {
         hrApprovedAmount = this.state.TotalAmountClaimed
       }
 
@@ -1089,7 +1091,7 @@ if(this.state.OnBehalf == "Yes"){
         OnBehalf: this.state.OnBehalf,
         EmployeeID: this.state.EmployeeID,
         Scale: this.state.Scale,
-        EmployeeType: this.state.EmpType,
+        EmployeeType: this.state.EmployeeType.Title,
         DependentType: this.state.DependentType,
         Status: "Approved",
         // HR1Response: "",
@@ -1121,7 +1123,7 @@ if(this.state.OnBehalf == "Yes"){
         OnBehalf: this.state.OnBehalf,
         EmployeeID: this.state.EmployeeID,
         Scale: this.state.Scale,
-        EmployeeType: this.state.EmpType,
+        EmployeeType: this.state.EmployeeType.Title,
         DependentType: this.state.DependentType,
         Status: "Pending",
         HR1Response: "Pending with HR1",
@@ -2655,7 +2657,7 @@ if(this.state.OnBehalf == "Yes"){
                     <Label className="control-Label font-weight-bold">Employee Type </Label>
                   </div>
                   <div className="col-sm-2">
-                    <Label className="control-Label ">{this.state.EmpType}</Label>
+                    <Label className="control-Label ">{this.state.EmployeeType}</Label>
                   </div>
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">Designation</Label>
@@ -2846,7 +2848,7 @@ if(this.state.OnBehalf == "Yes"){
 
 
             </div>
-            <div className="col-sm-12" style={{ padding: 0 }} hidden={!this.state.showhideEmployeeNameLab && this.state.EmpType != "RETIRED"} >
+            <div className="col-sm-12" style={{ padding: 0 }} hidden={!this.state.showhideEmployeeNameLab && this.state.EmployeeType != "RETIRED"} >
               <Label className="control-Label font-weight-bold col-md-2">HR Remarks For Retired Employee</Label>
               <TextField type='text' className='col-md-8'
                 name="ExpenseDetails.HRRemarkForRetired"
