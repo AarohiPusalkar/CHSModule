@@ -58,12 +58,12 @@ export default function EmployeeOps() {
                     SubGroupId: firstResult.SubGroupId,
                     Unit: firstResult.Unit,
                     EmployeeType: firstResult.EmployeeType,
-                    Scale: firstResult.Scale.Title,
-                    Payscale: firstResult.Payscale.Title,
+                    Scale: firstResult.Scale?firstResult.Scale.Title:'',
+                    Payscale: firstResult.Payscale?firstResult.Payscale.Title:'',
                     Grade: firstResult.Grade,
                     GradeId: firstResult.GradeId,
                     Designation: firstResult.Designation,
-                    DesignationTitle: firstResult.Designation.Title,
+                    DesignationTitle: firstResult.Designation?firstResult.Designation.Title:'',
                     DesignationId: firstResult.DesignationId,
                     // DateofBirth:firstResult.TempDOB,
                     DateofBirth: firstResult.DOB
@@ -224,7 +224,7 @@ export default function EmployeeOps() {
     //                 Unit: firstResult.Unit,
     //                 EmployeeType: firstResult.EmployeeType,
     //                 Scale: firstResult.Scale.Title,
-    //                 Payscale: firstResult.Payscale.Title,
+    //                 Payscale: firstResult.Payscale?firstResult.Payscale.Title:''Title,
     //                 Grade: firstResult.Grade,
     //                 GradeId: firstResult.GradeId,
     //                 Designation: firstResult.Designation,
@@ -285,8 +285,9 @@ export default function EmployeeOps() {
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
                     brr.push({
                         ID: item.ID,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
-
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
+                        //  FinancialYear:item.FinancialYear,
                         HRApprovedAmount: item.HRApprovedAmount,
                         OnBehalf: item.OnBehalf,
                         Title: item.Title,
@@ -371,7 +372,8 @@ export default function EmployeeOps() {
                         ID: item.ID,
                         HRApprovedAmount: item.HRApprovedAmount,
                         OnBehalf: item.OnBehalf,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
                         Created: new Date(item.Created),
                         EligibilityLimit: item.EligibilityLimit,
                         Title: item.Title,
@@ -501,7 +503,8 @@ export default function EmployeeOps() {
                         EmployeeType: item.EmployeeType,
                         Designation: item.Designation,
                         Age: item.Age,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
 
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
@@ -582,7 +585,8 @@ export default function EmployeeOps() {
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
 
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
@@ -598,10 +602,10 @@ export default function EmployeeOps() {
         let FinalStatus = "Pending";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name"
-            , "AttachmentFiles,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name,Author/Id"
+            , "AttachmentFiles,HR2ApproverName,Author"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and HR2ApproverName/Name ne '${currentUser.LoginName}' `
+            , `HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Id ne '${currentUser.Id}'  and HR2ApproverName/Name ne '${currentUser.LoginName}' `
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -660,7 +664,8 @@ export default function EmployeeOps() {
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: (item.DateofBirth),
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
 
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
@@ -677,12 +682,12 @@ export default function EmployeeOps() {
         let Rejected = "Rejected"
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name"
-            , "AttachmentFiles,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `HR1Response eq '${status}' and HR2ApproverName/Name ne '${currentUser.LoginName}'`
             // , `HR1Response eq '${status}' and (Status eq '${FinalStatus}' or Status ne '${Rejected}')`
-            , `HR1Response eq '${status}' and (Status eq '${FinalStatus}' or Status ne '${Rejected}')`
+            , `HR1Response eq '${status}' and  HR1ApproverName/Name eq '${currentUser.LoginName}' and (Status eq '${FinalStatus}' or Status ne '${Rejected}')`
 
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
@@ -743,7 +748,8 @@ export default function EmployeeOps() {
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         AttachmentFiles: item.AttachmentFiles,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
                         HRRemarkForRetired : item.HRRemarkForRetired
 
@@ -757,10 +763,10 @@ export default function EmployeeOps() {
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         let status = "Rejected";
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name"
-            , "AttachmentFiles,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR2ApproverName,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}' and  HR1ApproverName/Name eq '${currentUser.LoginName}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -820,7 +826,8 @@ export default function EmployeeOps() {
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
                         HRRemarkForRetired : item.HRRemarkForRetired
                     });
@@ -835,11 +842,11 @@ export default function EmployeeOps() {
         let FinalStatus = "Pending";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,Author/Name"
+            , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `HR2Response eq '${status}'`
-            , `HR2Response eq '${HR2Status}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
+            , `HR2Response eq '${HR2Status}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}' and  HR2ApproverName/Name eq  '${currentUser.LoginName}' and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -899,7 +906,8 @@ export default function EmployeeOps() {
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
                         HRRemarkForRetired : item.HRRemarkForRetired
                     });
@@ -913,16 +921,17 @@ export default function EmployeeOps() {
         let FinalStatus = "Approved";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles, HR1ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName"
+            , "*,Attachments,AttachmentFiles, HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${FinalStatus}'`
+            , `Status eq '${FinalStatus}' and HR2ApproverName/Name eq  '${currentUser.LoginName}' and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
                     brr.push({
                         ID: item.ID,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
                         OnBehalf: item.OnBehalf,
                         Title: item.Title,
                         HRApprovedAmount: item.HRApprovedAmount,
@@ -989,17 +998,18 @@ export default function EmployeeOps() {
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         let status = "Rejected";
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}' and HR1ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}'  and  HR2ApproverName/Name eq '${currentUser.LoginName}'  and HR1ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
                     brr.push({
                         ID: item.ID,
                         Title: item.Title,
-                        IsSpouseEximMember: item.IsSpouseEximMember,
+                         IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear:item.FinancialYear,
                         OnBehalf: item.OnBehalf,
                         HRApprovedAmount: item.HRApprovedAmount,
 

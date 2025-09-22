@@ -50,6 +50,7 @@ const validate = yup.object().shape({
   Subject: yup.string().required('Subject is required'),
 });
 
+// let CurrentFinancialYear;
 export interface ISelectState {
   selectedOption?: string;
 }
@@ -65,6 +66,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
   constructor(props: any) {
     super(props);
+
     this.state = {
       activeHRTab: localStorage.getItem("activeHRTab") || "tab1",
     };
@@ -180,6 +182,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       activeHRTab: 'Pending',
       activeHRdashTab: 'Pending',
       selectedOuterTab: '',
+      CurrentFinancialYear:  this.getFinancialYear(),
+
       isOnBehalfandRetired: false
     };
     // this.getSelectedEmployeeDetail=this.getSelectedEmployeeDetail.bind(this);  
@@ -283,7 +287,32 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     await this.getEmployee();
     await this.GetEmployeelimit();
 
+
   }
+
+
+ public  getFinancialYear() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1; // Months are 0-based
+  
+    let startYear, endYear;
+  
+    if (month >= 4) { 
+      // From April to December → current FY starts this year
+      startYear = year;
+      endYear = year + 1;
+    } else {
+      // From January to March → current FY started last year
+      startYear = year - 1;
+      endYear = year;
+    }
+  
+    return `April 1, ${startYear} – March 31, ${endYear}`;
+  }
+  
+
+  
   handleOuterTabClick = (tabName) => {
     this.setState({
       selectedOuterTab: tabName,
@@ -943,7 +972,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         return false;
       }*/
 
-    const arrScaleUpto5 = ["SCALE1", "SCALE1", "SCALE1", "SCALE1", "SCALE1"];
+    const arrScaleUpto5 = ["SCALE1", "SCALE2", "SCALE3", "SCALE4", "SCALE5"];
     const arrScaleAbove6 = ["SCALE6", "SCALE7", "SCALE8", "GOVT"];
 
     if (this.state.Scale) {
@@ -992,6 +1021,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         HR1Response: "Pending with HR1",
         EligibilityLimit: actualEligibilityLimit,
         Limit: +this.state.Limit,
+        FinancialYear:this.state.CurrentFinancialYear,
         HR2Response: "Pending with HR2",
         RequestorEmail: this.state.CompanyEmail,
 
@@ -1009,45 +1039,49 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     if (this.state.ShowHR1Tab) {
       pivotTab = "HR1";
       dashTab = "Approved";
+if(this.state.OnBehalf == "Yes"){
+  let hrApprovedAmount = this.state.ExpenseDetails.Amount;
+  if ( this.state.EmpType == "RETIRED") {
+    hrApprovedAmount = this.state.TotalAmountClaimed
+  }
+  CHSRequestItem = {
+    OnBehalf: this.state.OnBehalf,
+    EmployeeID: this.state.EmployeeID,
+    Scale: this.state.Scale,
+    EmployeeType: this.state.EmpType,
+    DependentType: this.state.DependentType,
+    Status: "Approved",
+    HR1Response: "Approved by HR1",
+    IsSpouseEximMember: this.state.selectedOptionCHBx,
+    RequestorEmail: this.state.CompanyEmail,
+    FinancialYear:this.state.CurrentFinancialYear,
 
-      let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-      if (this.state.OnBehalf == "Yes" && this.state.EmpType == "RETIRED") {
-        hrApprovedAmount = this.state.TotalAmountClaimed
-      }
-      CHSRequestItem = {
-        OnBehalf: this.state.OnBehalf,
-        EmployeeID: this.state.EmployeeID,
-        Scale: this.state.Scale,
-        EmployeeType: this.state.EmpType,
-        DependentType: this.state.DependentType,
-        Status: "Approved",
-        HR1Response: "Approved by HR1",
-        IsSpouseEximMember: this.state.selectedOptionCHBx,
-        RequestorEmail: this.state.CompanyEmail,
+    // HR2Response: "",
+    HR1ApproverNameId: this.state.Currentuser.Id,
+    HR2Response: "Approved by HR2",
+    HR1ResponseDate: new Date(),
+    EligibilityLimit: actualEligibilityLimit,
+    Limit: +this.state.Limit,
+    DateofBirth: new Date(this.state.DateofBirth),
+    Designation: this.state.DesignationTitle,
+    Age: '' + this.state.Age,
+    ////AmountClaimed: +this.state.ExpenseDetails.Amount,  //AP 8/7/25
+    AmountClaimed: this.state.TotalAmountClaimed,
+    HRApprovedAmount: +hrApprovedAmount,
+    EmployeeName: this.state.EmployeeName,
+    DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+    HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
+  };
+}
 
-        // HR2Response: "",
-        HR1ApproverNameId: this.state.Currentuser.Id,
-        HR2Response: "Approved by HR2",
-        HR1ResponseDate: new Date(),
-        EligibilityLimit: actualEligibilityLimit,
-        Limit: +this.state.Limit,
-        DateofBirth: new Date(this.state.DateofBirth),
-        Designation: this.state.DesignationTitle,
-        Age: '' + this.state.Age,
-        ////AmountClaimed: +this.state.ExpenseDetails.Amount,  //AP 8/7/25
-        AmountClaimed: this.state.TotalAmountClaimed,
-        HRApprovedAmount: +hrApprovedAmount,
-        EmployeeName: this.state.EmployeeName,
-        DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-        HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-      };
+     
     }
     if (this.state.ShowHR2Tab) {
       pivotTab = "HR2";
       dashTab = "Approved";
-
+if(this.state.OnBehalf == "Yes"){
       let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-      if (this.state.OnBehalf == "Yes" && this.state.EmpType == "RETIRED") {
+      if ( this.state.EmpType == "RETIRED") {
         hrApprovedAmount = this.state.TotalAmountClaimed
       }
 
@@ -1061,6 +1095,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         // HR1Response: "",
         HR2Response: "Approved by HR2",
         HR1Response: "Approved by HR1",
+        FinancialYear:this.state.CurrentFinancialYear,
 
         IsSpouseEximMember: this.state.selectedOptionCHBx,
         RequestorEmail: this.state.CompanyEmail,
@@ -1081,6 +1116,34 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
       };
     }
+    else{
+      CHSRequestItem = {
+        OnBehalf: this.state.OnBehalf,
+        EmployeeID: this.state.EmployeeID,
+        Scale: this.state.Scale,
+        EmployeeType: this.state.EmpType,
+        DependentType: this.state.DependentType,
+        Status: "Pending",
+        HR1Response: "Pending with HR1",
+        EligibilityLimit: actualEligibilityLimit,
+        Limit: +this.state.Limit,
+        FinancialYear:this.state.CurrentFinancialYear,
+        HR2Response: "Pending with HR2",
+        RequestorEmail: this.state.CompanyEmail,
+    
+        IsSpouseEximMember: this.state.selectedOptionCHBx,
+        DateofBirth: new Date(this.state.DateofBirth),
+        Designation: this.state.DesignationTitle,
+        Age: '' + this.state.Age,
+        ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
+        AmountClaimed: this.state.TotalAmountClaimed,
+        EmployeeName: this.state.EmployeeName,
+        DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+        HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
+      };
+    }
+  }
+  
     // return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
     //   this.setState({ reqID: req.data.ID });
     //   const RequestNoGenerate = {
@@ -1724,7 +1787,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             <div className={styles.column}>
               <span className={styles.title}> </span>
               <div className='mb-2 text-right'>
-                <DefaultButton className='btn-primary' onClick={() => this.CreateRequest()}> <Icon iconName='' ></Icon> Create Request</DefaultButton>
+                <DefaultButton className='btn-primary' onClick={() => this.CreateRequest()}> <Icon iconName='' ></Icon> Create Request </DefaultButton>
                 <PrimaryButton className='btn-primary' style={{ marginLeft: "10px" }} text="Report for Age-based Health Checkup" onClick={this.exportToExcel} hidden={!showReportButton} />
               </div>
 
@@ -1770,6 +1833,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
                           </tr>
@@ -1786,6 +1850,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
 
                                 </tr>
@@ -1810,6 +1876,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -1827,6 +1894,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
                                   {/* {
                                       items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
@@ -1859,6 +1928,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -1876,6 +1946,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
                                   {/* {
                                       items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
@@ -1978,6 +2050,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -1996,6 +2069,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
                                   {/* {
                                       items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
@@ -2069,6 +2144,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -2086,6 +2162,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
                                   {/* {
                                       items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
@@ -2159,6 +2237,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -2176,6 +2255,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
                                   {/* {
                                       items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
@@ -2272,7 +2353,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Date of Birth</th>
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
-                            <th>Final Approved Amount</th>
+                            <th>Final Approved Amount</th>,
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -2291,6 +2373,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
+                                  
                                   <td>{items.Status}</td>
 
                                 </tr>
@@ -2355,6 +2440,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -2372,6 +2458,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
 
                                 </tr>
@@ -2416,6 +2504,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Dependent Type</th>
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+
                             <th>Status</th>
                             {/* <th>View Doc.</th> */}
 
@@ -2433,6 +2523,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.DependentType}</td>
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
                                   <td>{items.Status}</td>
                                   {/* {
                                       items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
@@ -2464,13 +2556,26 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           dialogContentProps={{
             type: DialogType.normal,
             title: 'CHS Request',
+            // subText:`Financial Year : ${this.state.CurrentFinancialYear}`,
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
         >
+
+
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
+              <div className="row form-group" >
+
+              <div className="col-sm-2" >
+                    <Label className="control-Label font-weight-bold">Financial Year:
+                     </Label>
+                  </div>
+                  <div className="col-sm-6" >
+                  {this.state.CurrentFinancialYear}
+                  </div>
+                  </div>
                 <div className="row form-group" hidden={(!this.state.ShowHR1Tab) && (!this.state.ShowHR2Tab)} >
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">On behalf of:</Label>
@@ -2499,6 +2604,11 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       className="dropdown-style"
                     />
                   </div>
+
+                  {/* //    CurrentFinancialYear=  await this.getFinancialYear() */}
+
+                
+
                   <div className="col-sm-2" hidden={!this.state.showhideEmployeeNameLab}>
                     <Label className="control-Label font-weight-bold">Employee Name</Label>
                   </div>
@@ -2773,6 +2883,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
+
+              <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Finacial Year:</Label>
+                  </div>
+                  <div className="col-sm-6">
+                    <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
+                  </div>
+                  </div>
+
+                  
+                  
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -2971,6 +3093,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
+              <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Finacial Year:</Label>
+                  </div>
+                  <div className="col-sm-6">
+                    <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
+                  </div>
+                  </div>
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -3202,6 +3332,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
+              <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Finacial Year:</Label>
+                  </div>
+                  <div className="col-sm-6">
+                    <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
+                  </div>
+                  </div>
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -3419,6 +3557,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
+              <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Finacial Year:</Label>
+                  </div>
+                  <div className="col-sm-6">
+                    <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
+                  </div>
+                  </div>
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>

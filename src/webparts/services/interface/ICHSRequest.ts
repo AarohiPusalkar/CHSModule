@@ -57,7 +57,8 @@ export interface ICHSRequest {
     IsSpouseEximMember:any,
     DependentClaimDetails:any,
     OnBehalf:any,
-    HRRemarkForRetired : any
+    HRRemarkForRetired : any,
+    FinancialYear:any
 }
 // EmployeeName
 // EmployeeType
