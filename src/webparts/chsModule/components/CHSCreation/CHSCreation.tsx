@@ -421,7 +421,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     return await EmployeeOps().getEmployeeMaster(this.props).then(async (results) => {
       let employeeData = results;
       let limitData: IEmployeeCHSLimitMaster[] = await this.GetEmployeelimit();
-      let matchedLimit = limitData.filter((e) => e.Scale.Title == employeeData.Scale && e.Designation.Title == employeeData.DesignationTitle && e.EmployeeType == employeeData.EmployeeType.Title);
+      let matchedLimit = limitData.filter((e) => e.Scale.Title == employeeData.Scale && e.Designation.Title == employeeData.DesignationTitle && e.EmployeeType == employeeData.EmployeeType);
       debugger;
       this.setState({
         EmployeeInfodb: employeeData,
@@ -443,7 +443,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         DateofBirth: employeeData.DateofBirth,
         Scale: employeeData.Scale,
         Age: parseInt(employeeData.Age),
-        EmpType: employeeData.EmployeeType,
+        // EmpType: employeeData.EmployeeType,
         EmployeeType: employeeData.EmployeeType,
 
         Limit: matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : "",
