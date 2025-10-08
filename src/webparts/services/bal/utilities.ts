@@ -90,3 +90,13 @@ export default function Utilities() {
         calculateAge
     };
 }
+export async function isUserInGroup(userLoginName: string, groupName: string): Promise<boolean> {
+    try {
+      const groupUsers = await sp.web.siteGroups.getByName(groupName).users();
+      return groupUsers.some(user => user.LoginName.toLowerCase() === userLoginName.toLowerCase());
+    } catch (error) {
+      console.error(`Error checking group membership for group "${groupName}":`, error);
+      return false;
+    }
+  }
+

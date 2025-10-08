@@ -12,6 +12,7 @@ require('../assets/style.css');
 require('../../../../node_modules/bootstrap/dist/css/bootstrap.min.css');
 export default class ChsModule extends React.Component < IChsModuleProps, {} > {
   public render(): React.ReactElement<IChsModuleProps> {
+    
     return(
       <section >
         <div id='divLoader' className={'divLoader'}></div>
