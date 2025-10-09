@@ -10,6 +10,12 @@ export interface IEmployeeMasterOps {
     HR2getApproveDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
     HR2getApproveApprovedDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
     HR2getApproveRejectedDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
+
+    TagApprovergetApproveDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
+    TagApprovergetApproveApprovedDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
+    TagApprovergetApproveRejectedDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
+
+
     HR1getApproveDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
     HR1getApproveApprovedDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
     HR1getApproveRejectedDashboard(props: IChsModuleProps): Promise<ICHSRequest>;
@@ -57,13 +63,13 @@ export default function EmployeeOps() {
                     SubGroup: firstResult.CurrentOfficeLocation,
                     SubGroupId: firstResult.SubGroupId,
                     Unit: firstResult.Unit,
-                    EmployeeType: firstResult.EmployeeType?firstResult.EmployeeType.Title :'',
-                    Scale: firstResult.Scale?firstResult.Scale.Title:'',
-                    Payscale: firstResult.Payscale?firstResult.Payscale.Title:'',
+                    EmployeeType: firstResult.EmployeeType ? firstResult.EmployeeType.Title : '',
+                    Scale: firstResult.Scale ? firstResult.Scale.Title : '',
+                    Payscale: firstResult.Payscale ? firstResult.Payscale.Title : '',
                     Grade: firstResult.Grade,
                     GradeId: firstResult.GradeId,
                     Designation: firstResult.Designation,
-                    DesignationTitle: firstResult.Designation?firstResult.Designation.Title:'',
+                    DesignationTitle: firstResult.Designation ? firstResult.Designation.Title : '',
                     DesignationId: firstResult.DesignationId,
                     // DateofBirth:firstResult.TempDOB,
                     DateofBirth: firstResult.DOB
@@ -285,8 +291,8 @@ export default function EmployeeOps() {
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
                     brr.push({
                         ID: item.ID,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         //  FinancialYear:item.FinancialYear,
                         HRApprovedAmount: item.HRApprovedAmount,
                         OnBehalf: item.OnBehalf,
@@ -348,8 +354,8 @@ export default function EmployeeOps() {
                         DateofBirth: item.DateofBirth !== undefined && item.DateofBirth !== null ? new Date(item.DateofBirth) : null,
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                   ,HRRemarkForRetired : item.HRRemarkForRetired
-                 });
+                        , HRRemarkForRetired: item.HRRemarkForRetired
+                    });
                 });
                 return brr;
             });
@@ -372,8 +378,8 @@ export default function EmployeeOps() {
                         ID: item.ID,
                         HRApprovedAmount: item.HRApprovedAmount,
                         OnBehalf: item.OnBehalf,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         Created: new Date(item.Created),
                         EligibilityLimit: item.EligibilityLimit,
                         Title: item.Title,
@@ -433,8 +439,8 @@ export default function EmployeeOps() {
                         DateofBirth: item.DateofBirth !== undefined && item.DateofBirth !== null ? new Date(item.DateofBirth) : null,
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                    ,HRRemarkForRetired : item.HRRemarkForRetired
-                });
+                        , HRRemarkForRetired: item.HRRemarkForRetired
+                    });
                 });
                 return brr;
             });
@@ -503,15 +509,15 @@ export default function EmployeeOps() {
                         EmployeeType: item.EmployeeType,
                         Designation: item.Designation,
                         Age: item.Age,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
 
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                    ,HRRemarkForRetired : item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -585,12 +591,12 @@ export default function EmployeeOps() {
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
 
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                    ,HRRemarkForRetired : item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -664,12 +670,12 @@ export default function EmployeeOps() {
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: (item.DateofBirth),
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
 
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                    ,HRRemarkForRetired : item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -748,10 +754,10 @@ export default function EmployeeOps() {
                         Limit: item.Limit,
                         AmountClaimed: item.AmountClaimed,
                         AttachmentFiles: item.AttachmentFiles,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired : item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired
 
                     });
                 });
@@ -826,10 +832,10 @@ export default function EmployeeOps() {
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired : item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -906,10 +912,10 @@ export default function EmployeeOps() {
                         AmountClaimed: item.AmountClaimed,
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired : item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -930,8 +936,8 @@ export default function EmployeeOps() {
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
                     brr.push({
                         ID: item.ID,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         OnBehalf: item.OnBehalf,
                         Title: item.Title,
                         HRApprovedAmount: item.HRApprovedAmount,
@@ -987,7 +993,7 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired : item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -1008,8 +1014,8 @@ export default function EmployeeOps() {
                     brr.push({
                         ID: item.ID,
                         Title: item.Title,
-                         IsSpouseEximMember: item.IsSpouseEximMember,
-                        FinancialYear:item.FinancialYear,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
                         OnBehalf: item.OnBehalf,
                         HRApprovedAmount: item.HRApprovedAmount,
 
@@ -1065,7 +1071,246 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired : item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired
+                    });
+                });
+                return brr;
+            });
+    };
+
+    const TagApprovergetApproveDashboard = async (props: IChsModuleProps): Promise<ICHSRequest[]> => {
+        //  const emplinfo = await getEmployeeMaster(props);
+        let HR2Status = "Approved with HR2";
+        let HR1Status = "Approved by HR1";
+        let TagApproverStatus = "Pending with TagApprover";
+
+        let FinalStatus = "Pending";
+        const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
+        return await (await spCrudOps).getData("HealthCheckupService"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,Author/Name"
+            , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName"
+            // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
+            // , `HR2Response eq '${status}'`
+            , `HR2Response eq '${HR2Status}' and TagApproverResponse eq '${TagApproverStatus}' and HR1Response eq '${HR1Status}' and TagApproverResponse eq '${TagApproverStatus}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName} and HR2ApproverName/Name ne  '${currentUser.LoginName}'`
+            , { column: 'Id', isAscending: false }, props).then(UserPending => {
+                let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
+                UserPending.sort((a, b) => b.Id - a.Id).map(item => {
+                    brr.push({
+                        ID: item.ID,
+                        Title: item.Title,
+                        HRApprovedAmount: item.HRApprovedAmount,
+                        OnBehalf: item.OnBehalf,
+                        Created: new Date(item.Created),
+                        EligibilityLimit: item.EligibilityLimit,
+                        HR1Remark: item.HR1Remark,
+                        HR2Remark: item.HR2Remark,
+                        VoucherID: item.VoucherID,
+                        AccountNo: item.AccountNo,
+                        Amountclaimed: '' + item.Amountclaimed,
+                        Approver: item.Approver,
+                        CashApprover: item.CashApprover,
+                        changeptym: item.changeptym,
+                        ClaimFor: item.ClaimFor,
+                        CNRejectedDate: item.CNRejectedDate,
+                        DocumentLinks: item.DocumentLinks,
+                        Documents: item.Documents,
+                        EmployeeDesignation: item.EmployeeDesignation,
+                        EmployeeGrade: item.EmployeeGrade,
+                        EmployeeID: item.EmployeeID,
+                        EmployeeName: item.EmployeeName,
+                        EmployeeSubGroup: item.EmployeeSubGroup,
+                        FirstApproverAppDate: item.FirstApproverAppDate,
+                        FirstApproverRejectDate: item.FirstApproverRejectDate,
+                        flag: item.flag,
+                        GHRemark: item.GHRemark,
+                        GHRemarks: item.GHRemarks,
+                        GHStatus: item.GHStatus,
+                        IFSCCode: item.IFSCCode,
+                        Level1: item.Level1,
+                        Level2: item.Level2,
+                        NEFTApprover: item.NEFTApprover,
+                        OfficeLocation: item.OfficeLocation,
+                        PaidDate: item.PaidDate,
+                        PaymentType: item.PaymentType,
+                        Remark: item.Remark,
+                        Role: item.Role,
+                        SendForApproval: item.SendForApproval,
+                        Status: item.Status,
+                        TAGRemark: item.TAGRemark,
+                        TAGStatus: item.TAGStatus,
+                        VendorDetails: item.VendorDetails,
+                        Voucherdate: item.Voucherdate,
+                        DependentType: item.DependentType,
+                        // AmountClaimed:item.AmountClaimed,
+                        FinalAmount: item.FinalAmount,
+                        Scale: item.Scale,
+                        EmployeeType: item.EmployeeType,
+                        Designation: item.Designation,
+                        Age: item.Age,
+                        Limit: item.Limit,
+                        AmountClaimed: item.AmountClaimed,
+                        DateofBirth: new Date(item.DateofBirth) || "",
+                        AttachmentFiles: item.AttachmentFiles,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
+                        DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
+                        HRRemarkForRetired: item.HRRemarkForRetired
+                    });
+                });
+                return brr;
+            });
+    };
+    const TagApprovergetApproveApprovedDashboard = async (props: IChsModuleProps): Promise<ICHSRequest[]> => {
+        //  const emplinfo = await getEmployeeMaster(props);
+        let TagApproverResponse = "Approved by TagApprover";
+        let FinalStatus = "Approved";
+        const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
+        return await (await spCrudOps).getData("HealthCheckupService"
+            , "*,Attachments,AttachmentFiles, HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
+            , `Status eq '${FinalStatus}' and TagApproverResponse eq '${TagApproverResponse}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}' and HR2ApproverName/Name ne  '${currentUser.LoginName}'`
+            , { column: 'Id', isAscending: false }, props).then(UserPending => {
+                let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
+                UserPending.sort((a, b) => b.Id - a.Id).map(item => {
+                    brr.push({
+                        ID: item.ID,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
+                        OnBehalf: item.OnBehalf,
+                        Title: item.Title,
+                        HRApprovedAmount: item.HRApprovedAmount,
+                        Created: new Date(item.Created),
+                        EligibilityLimit: item.EligibilityLimit,
+                        HR1Remark: item.HR1Remark,
+                        HR2Remark: item.HR2Remark,
+                        VoucherID: item.VoucherID,
+                        AccountNo: item.AccountNo,
+                        Amountclaimed: '' + item.Amountclaimed,
+                        Approver: item.Approver,
+                        CashApprover: item.CashApprover,
+                        changeptym: item.changeptym,
+                        ClaimFor: item.ClaimFor,
+                        CNRejectedDate: item.CNRejectedDate,
+                        DocumentLinks: item.DocumentLinks,
+                        Documents: item.Documents,
+                        EmployeeDesignation: item.EmployeeDesignation,
+                        EmployeeGrade: item.EmployeeGrade,
+                        EmployeeID: item.EmployeeID,
+                        EmployeeName: item.EmployeeName,
+                        EmployeeSubGroup: item.EmployeeSubGroup,
+                        FirstApproverAppDate: item.FirstApproverAppDate,
+                        FirstApproverRejectDate: item.FirstApproverRejectDate,
+                        flag: item.flag,
+                        GHRemark: item.GHRemark,
+                        GHRemarks: item.GHRemarks,
+                        GHStatus: item.GHStatus,
+                        IFSCCode: item.IFSCCode,
+                        Level1: item.Level1,
+                        Level2: item.Level2,
+                        NEFTApprover: item.NEFTApprover,
+                        OfficeLocation: item.OfficeLocation,
+                        PaidDate: item.PaidDate,
+                        PaymentType: item.PaymentType,
+                        Remark: item.Remark,
+                        Role: item.Role,
+                        SendForApproval: item.SendForApproval,
+                        Status: item.Status,
+                        TAGRemark: item.TAGRemark,
+                        TAGStatus: item.TAGStatus,
+                        VendorDetails: item.VendorDetails,
+                        Voucherdate: item.Voucherdate,
+                        DependentType: item.DependentType,
+                        // AmountClaimed:item.AmountClaimed,
+                        FinalAmount: item.FinalAmount,
+                        Scale: item.Scale,
+                        EmployeeType: item.EmployeeType,
+                        Designation: item.Designation,
+                        Age: item.Age,
+                        Limit: item.Limit,
+                        AmountClaimed: item.AmountClaimed,
+                        DateofBirth: new Date(item.DateofBirth) || "",
+                        AttachmentFiles: item.AttachmentFiles,
+                        DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
+                        HRRemarkForRetired: item.HRRemarkForRetired
+                    });
+                });
+                return brr;
+            });
+    };
+    const TagApprovergetApproveRejectedDashboard = async (props: IChsModuleProps): Promise<ICHSRequest[]> => {
+        //  const emplinfo = await getEmployeeMaster(props);
+        const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
+        let status = "Rejected";
+        return await (await spCrudOps).getData("HealthCheckupService"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
+            , `Status eq '${status}'   and HR1ApproverName/Name ne '${currentUser.LoginName}' and HR2ApproverName/Name ne '${currentUser.LoginName}'`
+            , { column: 'Id', isAscending: false }, props).then(UserPending => {
+                let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
+                UserPending.sort((a, b) => b.Id - a.Id).map(item => {
+                    brr.push({
+                        ID: item.ID,
+                        Title: item.Title,
+                        IsSpouseEximMember: item.IsSpouseEximMember,
+                        FinancialYear: item.FinancialYear,
+                        OnBehalf: item.OnBehalf,
+                        HRApprovedAmount: item.HRApprovedAmount,
+
+                        Created: new Date(item.Created),
+                        EligibilityLimit: item.EligibilityLimit,
+                        HR1Remark: item.HR1Remark,
+                        HR2Remark: item.HR2Remark,
+                        VoucherID: item.VoucherID,
+                        AccountNo: item.AccountNo,
+                        Amountclaimed: '' + item.Amountclaimed,
+                        Approver: item.Approver,
+                        CashApprover: item.CashApprover,
+                        changeptym: item.changeptym,
+                        ClaimFor: item.ClaimFor,
+                        CNRejectedDate: item.CNRejectedDate,
+                        DocumentLinks: item.DocumentLinks,
+                        Documents: item.Documents,
+                        EmployeeDesignation: item.EmployeeDesignation,
+                        EmployeeGrade: item.EmployeeGrade,
+                        EmployeeID: item.EmployeeID,
+                        EmployeeName: item.EmployeeName,
+                        EmployeeSubGroup: item.EmployeeSubGroup,
+                        FirstApproverAppDate: item.FirstApproverAppDate,
+                        FirstApproverRejectDate: item.FirstApproverRejectDate,
+                        flag: item.flag,
+                        GHRemark: item.GHRemark,
+                        GHRemarks: item.GHRemarks,
+                        GHStatus: item.GHStatus,
+                        IFSCCode: item.IFSCCode,
+                        Level1: item.Level1,
+                        Level2: item.Level2,
+                        NEFTApprover: item.NEFTApprover,
+                        OfficeLocation: item.OfficeLocation,
+                        PaidDate: item.PaidDate,
+                        PaymentType: item.PaymentType,
+                        Remark: item.Remark,
+                        Role: item.Role,
+                        SendForApproval: item.SendForApproval,
+                        Status: item.Status,
+                        TAGRemark: item.TAGRemark,
+                        TAGStatus: item.TAGStatus,
+                        VendorDetails: item.VendorDetails,
+                        Voucherdate: item.Voucherdate,
+                        DependentType: item.DependentType,
+                        // AmountClaimed:item.AmountClaimed,
+                        FinalAmount: item.FinalAmount,
+                        Scale: item.Scale,
+                        EmployeeType: item.EmployeeType,
+                        Designation: item.Designation,
+                        Age: item.Age,
+                        Limit: item.Limit,
+                        AmountClaimed: item.AmountClaimed,
+                        DateofBirth: new Date(item.DateofBirth) || "",
+                        AttachmentFiles: item.AttachmentFiles,
+                        DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
+                        HRRemarkForRetired: item.HRRemarkForRetired
                     });
                 });
                 return brr;
@@ -1131,6 +1376,12 @@ export default function EmployeeOps() {
         HR2getApproveDashboard,
         HR2getApproveApprovedDashboard,
         HR2getApproveRejectedDashboard,
-        getAgeBasedHealthCheckupReportData
+        TagApprovergetApproveDashboard,
+        TagApprovergetApproveApprovedDashboard,
+        TagApprovergetApproveRejectedDashboard,
+
+        getAgeBasedHealthCheckupReportData,
+
+
     };
 }

@@ -94,6 +94,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       isOnBehalfDisabled: false,
       ShowHR1Tab: false,
       ShowHR2Tab: false,
+      ShowTagApproverTab: false,
+
       ShowHRTab: true,
       ActualClaimAmountLable: "",
       Currentuser: "",
@@ -106,6 +108,11 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       HR2ApprPendingDashboard: [],
       HR2ApproverApprDashboard: [],
       HR2ApproverRejectDashboard: [],
+
+      TagApproverPendingDashboard: [],
+      TagApproverApprDashboard: [],
+      TagApproverRejectDashboard: [],
+
       DependentType: "ALL",
       AmountClaimed: "",
       IsMarried: false,
@@ -127,6 +134,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       allDashboardDataHR2Approved: [],
 
+      allDashboardDataTagApproverPending: [],
+
+      allDashboardDataTagApproverRejected: [],
+
+      allDashboardDataTagApproverApproved: [],
+
 
       allDashboardData2: [],
 
@@ -137,8 +150,13 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       isDialogGH: false,
       isDialogHR1: false,
       isDialogHR2: false,
+      isDialogTagApprover: false,
+
+
       isDialogViewHR1: false,
       isDialogViewHR2: false,
+      isDialogViewTagApprover: false,
+
       EmployeeName: "",
       ExpenseDetailsAlert: false,
       searchValue: "",
@@ -180,9 +198,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       // filteredOptions: this.state.AllEmployeeCollObj,
       activeHR1Tab: 'Pending',
       activeHRTab: 'Pending',
+      activeTagApproverTab: 'Pending',
+
+      
       activeHRdashTab: 'Pending',
       selectedOuterTab: '',
-      CurrentFinancialYear:  this.getFinancialYear(),
+      CurrentFinancialYear: this.getFinancialYear(),
 
       isOnBehalfandRetired: false
     };
@@ -231,44 +252,67 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       const urlParams = new URLSearchParams(window.location.search);
       const dashTabParam = urlParams.get("dashtab") || "Pending";
       const pivotTabParam = urlParams.get("ptab") || "User";
-        const ishr1= await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
-        const ishr2= await this.checkUserInGroupsForHR2TabNav(['HR2_Group'])
+      const ishr1 = await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
+      const ishr2 = await this.checkUserInGroupsForHR2TabNav(['HR2_Group'])
+      const isTagApprover = await this.checkUserInGroupsForHR2TabNav(['TagApprover'])
+
+
+
 
       switch (pivotTabParam) {
         case "HR1":
-          if(ishr1){
+          if (ishr1) {
             this.setState({
               ShowHR1Tab: true,
               activeHR1Tab: dashTabParam,
               selectedOuterTab: "HR1"
             });
           }
-          else{
+          else {
             this.setState({
               ShowHRTab: true,
               activeHRdashTab: dashTabParam,
               selectedOuterTab: "User"
             });
           }
-         
+
           break;
         case "HR2":
-          if(ishr2){
+          if (ishr2) {
             this.setState({
               ShowHR2Tab: true,
               activeHR2Tab: dashTabParam,
               selectedOuterTab: "HR2"
             });
           }
-          else{
+          else {
             this.setState({
               ShowHRTab: true,
               activeHRdashTab: dashTabParam,
               selectedOuterTab: "User"
             });
           }
-        
+
           break;
+
+        case "TagApprover":
+          if (isTagApprover) {
+            this.setState({
+              ShowTagApproverTab: true,
+              activeTagApproverTab: dashTabParam,
+              selectedOuterTab: "TagApprover"
+            });
+          }
+          else {
+            this.setState({
+              ShowHRTab: true,
+              activeHRdashTab: dashTabParam,
+              selectedOuterTab: "User"
+            });
+          }
+
+          break;
+
         default:
           this.setState({
             ShowHRTab: true,
@@ -302,180 +346,189 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     await this.HR2ApprovePendingDashboard();
     await this.HR2ApproveApprovedDashboards();
     await this.HR2ApproveRejectedDashboards();
+
+    await this.TagApproverPendingDashboard();
+    await this.TagApproverApprovedDashboards();
+    await this.TagApproverRejectedDashboards();
+
     await this.GetEmployeelimit();
     await this.checkUserInGroups(["HR1_Group", "HR2_Group"]);
     await this.checkUserInGroupsForHR1Tab(["HR1_Group"]);
     await this.checkUserInGroupsForHR2Tab(["HR2_Group"]);
+    await this.checkUserInGroupsForTagApproverTab(["TagApprover"]);
+
+
+
     await this.getEmployee();
     await this.GetEmployeelimit();
 
 
   }
-// async componentDidMount() {
-//       // Get saved tab selections
-//       const savedTab3 = localStorage.getItem("activeHRdashTab");
-//       const savedTab1 = localStorage.getItem("activeHR1Tab");
-//       const savedTab2 = localStorage.getItem("activeHR2Tab");
-    
-//       this.setState({
-//         ...(savedTab3 && { activeHRdashTab: savedTab3 }),
-//         ...(savedTab1 && { activeHR1Tab: savedTab1 }),
-//         ...(savedTab2 && { activeHR2Tab: savedTab2 }),
-//       });
-    
-//       // Read query params
-//       const urlParams = new URLSearchParams(window.location.search);
-//       const dashTabParam = urlParams.get("dashtab") || "Pending";
-//       const pivotTabParam = urlParams.get("ptab") || "User";
-    
-//       // ✅ Check groups first
-// //     await this.checkUserInGroupsForHR1Tab('HR1_Group');
-// //      await this.checkUserInGroupsForHR1Tab('HR2_Group');
-    
-//       // ✅ Enforce access control
-     
-//       // ✅ Safe to set state only after validation
-//       switch (pivotTabParam) {
-//         case "HR1":
-//            const ishr1= await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
-// if(ishr1){
-//       this.setState({
-//             ShowHR1Tab: true,
-//             ShowHR2Tab: false,
+  // async componentDidMount() {
+  //       // Get saved tab selections
+  //       const savedTab3 = localStorage.getItem("activeHRdashTab");
+  //       const savedTab1 = localStorage.getItem("activeHR1Tab");
+  //       const savedTab2 = localStorage.getItem("activeHR2Tab");
 
-//             activeHR1Tab: dashTabParam,
-//             selectedOuterTab: "HR1"
-//           });
-// }
-         
-//           break;
-//         case "HR2":
-//             const ishr2= await this.checkUserInGroupsForHR1TabNav(['HR2_Group'])
-//             if(ishr2){
-//           this.setState({
-//             ShowHR2Tab: true,
-//             ShowHR1Tab: false,
+  //       this.setState({
+  //         ...(savedTab3 && { activeHRdashTab: savedTab3 }),
+  //         ...(savedTab1 && { activeHR1Tab: savedTab1 }),
+  //         ...(savedTab2 && { activeHR2Tab: savedTab2 }),
+  //       });
 
-//             activeHR2Tab: dashTabParam,
-//             selectedOuterTab: "HR2"
-//           });
-//       }
-//           break;
-//         default:
-//           this.setState({
-//             ShowHRTab: true,
-//             activeHRdashTab: dashTabParam,
-//             selectedOuterTab: "User"
-//           });
-//           break;
-//       }
-    
-//       // ✅ After security, load dashboards
-//       await this.getCurrentUser();
-//       await this.UserApprovedDashboards();
-//       await this.UserRejectedDashboards();
-//       await this.UserPendingDashboard();
-//       await this.HR1ApprovePendingDashboard();
-//       await this.HR1ApproveApprovedDashboards();
-//       await this.HR1ApproveRejectedDashboards();
-//       await this.HR2ApprovePendingDashboard();
-//       await this.HR2ApproveApprovedDashboards();
-//       await this.HR2ApproveRejectedDashboards();
-//       await this.GetEmployeelimit();
-//       await this.getEmployee();
-//     }
-// async componentDidMount() {
-//       // Restore saved tabs from localStorage
-//       // const savedTab3 = localStorage.getItem("activeHRdashTab");
-//       // const savedTab1 = localStorage.getItem("activeHR1Tab");
-//       // const savedTab2 = localStorage.getItem("activeHR2Tab");
-    
-//       // this.setState({
-//       //   ...(savedTab3 && { activeHRdashTab: savedTab3 }),
-//       //   ...(savedTab1 && { activeHR1Tab: savedTab1 }),
-//       //   ...(savedTab2 && { activeHR2Tab: savedTab2 }),
-//       // });
-    
-//       // // Read query params
-//       // const urlParams = new URLSearchParams(window.location.search);
-//       // const dashTabParam = urlParams.get("dashtab") || "Pending";
-//       // const pivotTabParam = urlParams.get("ptab") || "User";
-    
-//       // // ✅ Check group membership first
-//       // const isHr1 = await this.checkUserInGroupsForHR1TabNav(["HR1_Group"]);
-//       // const isHr2 = await this.checkUserInGroupsForHR1TabNav(["HR2_Group"]);
-    
-//       // ✅ Safe to set state only after validation
-//       // switch (pivotTabParam) {
-//       //   case "HR1":
-//       //     if (isHr1) {
-//       //       this.setState({
-//       //         ShowHR1Tab: true,
-//       //         ShowHR2Tab: false,
-//       //         activeHR1Tab: dashTabParam,
-//       //         selectedOuterTab: "HR1",
-//       //       });
-//       //     } else {
-//       //       // redirect unauthorized HR1 → User
-//       //       this.setState({
-//       //         ShowHRTab: true,
-//       //         activeHRdashTab: "Pending",
-//       //         selectedOuterTab: "User",
-//       //       });
-//       //     }
-//       //     break;
-    
-//       //   case "HR2":
-//       //     if (isHr2) {
-//       //       this.setState({
-//       //         ShowHR2Tab: true,
-//       //         ShowHR1Tab: false,
-//       //         activeHR2Tab: dashTabParam,
-//       //         selectedOuterTab: "HR2",
-//       //       });
-//       //     } else {
-//       //       // redirect unauthorized HR2 → User
-//       //       this.setState({
-//       //         ShowHRTab: true,
-//       //         activeHRdashTab: "Pending",
-//       //         selectedOuterTab: "User",
-//       //       });
-//       //     }
-//       //     break;
-    
-//       //   default:
-//       //     this.setState({
-//       //       ShowHRTab: true,
-//       //       activeHRdashTab: dashTabParam,
-//       //       selectedOuterTab: "User",
-//       //     });
-//       //     break;
-//       // }
-    
-//       // ✅ After security, load dashboards
-//       await this.getCurrentUser();
-//       await this.UserApprovedDashboards();
-//       await this.UserRejectedDashboards();
-//       await this.UserPendingDashboard();
-//       await this.HR1ApprovePendingDashboard();
-//       await this.HR1ApproveApprovedDashboards();
-//       await this.HR1ApproveRejectedDashboards();
-//       await this.HR2ApprovePendingDashboard();
-//       await this.HR2ApproveApprovedDashboards();
-//       await this.HR2ApproveRejectedDashboards();
-//       await this.GetEmployeelimit();
-//       await this.getEmployee();
-//     }
-    
+  //       // Read query params
+  //       const urlParams = new URLSearchParams(window.location.search);
+  //       const dashTabParam = urlParams.get("dashtab") || "Pending";
+  //       const pivotTabParam = urlParams.get("ptab") || "User";
 
- public  getFinancialYear() {
+  //       // ✅ Check groups first
+  // //     await this.checkUserInGroupsForHR1Tab('HR1_Group');
+  // //      await this.checkUserInGroupsForHR1Tab('HR2_Group');
+
+  //       // ✅ Enforce access control
+
+  //       // ✅ Safe to set state only after validation
+  //       switch (pivotTabParam) {
+  //         case "HR1":
+  //            const ishr1= await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
+  // if(ishr1){
+  //       this.setState({
+  //             ShowHR1Tab: true,
+  //             ShowHR2Tab: false,
+
+  //             activeHR1Tab: dashTabParam,
+  //             selectedOuterTab: "HR1"
+  //           });
+  // }
+
+  //           break;
+  //         case "HR2":
+  //             const ishr2= await this.checkUserInGroupsForHR1TabNav(['HR2_Group'])
+  //             if(ishr2){
+  //           this.setState({
+  //             ShowHR2Tab: true,
+  //             ShowHR1Tab: false,
+
+  //             activeHR2Tab: dashTabParam,
+  //             selectedOuterTab: "HR2"
+  //           });
+  //       }
+  //           break;
+  //         default:
+  //           this.setState({
+  //             ShowHRTab: true,
+  //             activeHRdashTab: dashTabParam,
+  //             selectedOuterTab: "User"
+  //           });
+  //           break;
+  //       }
+
+  //       // ✅ After security, load dashboards
+  //       await this.getCurrentUser();
+  //       await this.UserApprovedDashboards();
+  //       await this.UserRejectedDashboards();
+  //       await this.UserPendingDashboard();
+  //       await this.HR1ApprovePendingDashboard();
+  //       await this.HR1ApproveApprovedDashboards();
+  //       await this.HR1ApproveRejectedDashboards();
+  //       await this.HR2ApprovePendingDashboard();
+  //       await this.HR2ApproveApprovedDashboards();
+  //       await this.HR2ApproveRejectedDashboards();
+  //       await this.GetEmployeelimit();
+  //       await this.getEmployee();
+  //     }
+  // async componentDidMount() {
+  //       // Restore saved tabs from localStorage
+  //       // const savedTab3 = localStorage.getItem("activeHRdashTab");
+  //       // const savedTab1 = localStorage.getItem("activeHR1Tab");
+  //       // const savedTab2 = localStorage.getItem("activeHR2Tab");
+
+  //       // this.setState({
+  //       //   ...(savedTab3 && { activeHRdashTab: savedTab3 }),
+  //       //   ...(savedTab1 && { activeHR1Tab: savedTab1 }),
+  //       //   ...(savedTab2 && { activeHR2Tab: savedTab2 }),
+  //       // });
+
+  //       // // Read query params
+  //       // const urlParams = new URLSearchParams(window.location.search);
+  //       // const dashTabParam = urlParams.get("dashtab") || "Pending";
+  //       // const pivotTabParam = urlParams.get("ptab") || "User";
+
+  //       // // ✅ Check group membership first
+  //       // const isHr1 = await this.checkUserInGroupsForHR1TabNav(["HR1_Group"]);
+  //       // const isHr2 = await this.checkUserInGroupsForHR1TabNav(["HR2_Group"]);
+
+  //       // ✅ Safe to set state only after validation
+  //       // switch (pivotTabParam) {
+  //       //   case "HR1":
+  //       //     if (isHr1) {
+  //       //       this.setState({
+  //       //         ShowHR1Tab: true,
+  //       //         ShowHR2Tab: false,
+  //       //         activeHR1Tab: dashTabParam,
+  //       //         selectedOuterTab: "HR1",
+  //       //       });
+  //       //     } else {
+  //       //       // redirect unauthorized HR1 → User
+  //       //       this.setState({
+  //       //         ShowHRTab: true,
+  //       //         activeHRdashTab: "Pending",
+  //       //         selectedOuterTab: "User",
+  //       //       });
+  //       //     }
+  //       //     break;
+
+  //       //   case "HR2":
+  //       //     if (isHr2) {
+  //       //       this.setState({
+  //       //         ShowHR2Tab: true,
+  //       //         ShowHR1Tab: false,
+  //       //         activeHR2Tab: dashTabParam,
+  //       //         selectedOuterTab: "HR2",
+  //       //       });
+  //       //     } else {
+  //       //       // redirect unauthorized HR2 → User
+  //       //       this.setState({
+  //       //         ShowHRTab: true,
+  //       //         activeHRdashTab: "Pending",
+  //       //         selectedOuterTab: "User",
+  //       //       });
+  //       //     }
+  //       //     break;
+
+  //       //   default:
+  //       //     this.setState({
+  //       //       ShowHRTab: true,
+  //       //       activeHRdashTab: dashTabParam,
+  //       //       selectedOuterTab: "User",
+  //       //     });
+  //       //     break;
+  //       // }
+
+  //       // ✅ After security, load dashboards
+  //       await this.getCurrentUser();
+  //       await this.UserApprovedDashboards();
+  //       await this.UserRejectedDashboards();
+  //       await this.UserPendingDashboard();
+  //       await this.HR1ApprovePendingDashboard();
+  //       await this.HR1ApproveApprovedDashboards();
+  //       await this.HR1ApproveRejectedDashboards();
+  //       await this.HR2ApprovePendingDashboard();
+  //       await this.HR2ApproveApprovedDashboards();
+  //       await this.HR2ApproveRejectedDashboards();
+  //       await this.GetEmployeelimit();
+  //       await this.getEmployee();
+  //     }
+
+
+  public getFinancialYear() {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1; // Months are 0-based
-  
+
     let startYear, endYear;
-  
-    if (month >= 4) { 
+
+    if (month >= 4) {
       // From April to December → current FY starts this year
       startYear = year;
       endYear = year + 1;
@@ -484,12 +537,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       startYear = year - 1;
       endYear = year;
     }
-  
+
     return `April 1, ${startYear} – March 31, ${endYear}`;
   }
-  
 
-  
+
+
   handleOuterTabClick = (tabName) => {
     this.setState({
       selectedOuterTab: tabName,
@@ -539,53 +592,53 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     console.log(`Selected: ${selectedOption.label}`);
   }
   public async checkUserInGroupsForHR2TabNav(groups: string[]): Promise<boolean> {
-      try {
-        const spCrudObj = await useSPCRUD();
-        const userGroups = await spCrudObj.currentUserGroup(this.props);
-    
-        if (!userGroups || userGroups.length === 0) {
-          console.log("User is not part of any group.");
-          return false;
-        }
-    
-        const isUserInGroup = userGroups.some(group => groups.indexOf(group.Title) > -1);
-        if (isUserInGroup) {
-          this.setState({ ShowHR2Tab: true });
-          return true;
-        }
-    
-        return false;
-      } catch (error) {
-        console.error("Error checking user in groups:", error);
-        return false;
-      }
-    }
+    try {
+      const spCrudObj = await useSPCRUD();
+      const userGroups = await spCrudObj.currentUserGroup(this.props);
 
-    public async checkUserInGroupsForHR1TabNav(groups: string[]): Promise<boolean> {
-      try {
-        const spCrudObj = await useSPCRUD();
-        const userGroups = await spCrudObj.currentUserGroup(this.props);
-    
-        if (!userGroups || userGroups.length === 0) {
-          console.log("User is not part of any group.");
-          return false;
-        }
-    
-        const isUserInGroup = userGroups.some(group => groups.indexOf(group.Title) > -1);
-        if (isUserInGroup) {
-          this.setState({ ShowHR1Tab: true });
-          return true;
-        }
-    
-        return false;
-      } catch (error) {
-        console.error("Error checking user in groups:", error);
+      if (!userGroups || userGroups.length === 0) {
+        console.log("User is not part of any group.");
         return false;
       }
+
+      const isUserInGroup = userGroups.some(group => groups.indexOf(group.Title) > -1);
+      if (isUserInGroup) {
+        this.setState({ ShowHR2Tab: true });
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error checking user in groups:", error);
+      return false;
     }
-    
-    
-    
+  }
+
+  public async checkUserInGroupsForHR1TabNav(groups: string[]): Promise<boolean> {
+    try {
+      const spCrudObj = await useSPCRUD();
+      const userGroups = await spCrudObj.currentUserGroup(this.props);
+
+      if (!userGroups || userGroups.length === 0) {
+        console.log("User is not part of any group.");
+        return false;
+      }
+
+      const isUserInGroup = userGroups.some(group => groups.indexOf(group.Title) > -1);
+      if (isUserInGroup) {
+        this.setState({ ShowHR1Tab: true });
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error checking user in groups:", error);
+      return false;
+    }
+  }
+
+
+
 
   public async checkUserInGroups(groups: any) {
     try {
@@ -625,6 +678,27 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       return false;
     }
   }
+
+  public async checkUserInGroupsForTagApproverTab(groups: any) {
+    try {
+      const spCrudObj = await useSPCRUD();
+      const userGroups = await spCrudObj.currentUserGroup(this.props);
+      if (!userGroups || userGroups.length === 0) {
+        console.log("User is not part of any group.");
+        return false;
+      }
+      const isUserInGroup = userGroups.some(group => groups.includes(group.Title));
+      if (isUserInGroup) {
+        console.log(`User exists in at least one of the specified groups.`);
+        this.setState({ ShowTagApproverTab: true })
+      }
+    } catch (error) {
+      console.error("Error checking user in groups:", error);
+      return false;
+    }
+  }
+
+
   public async checkUserInGroupsForHR1Tab(groups: any) {
     try {
       const spCrudObj = await useSPCRUD();
@@ -775,8 +849,13 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       isDialogVisible: false,
       isDialogHR1: false,
       isDialogHR2: false,
+      isDialogTagApprover: false,
+
+
       isDialogViewHR1: false,
-      isDialogViewHR2: false
+      isDialogViewHR2: false,
+      isDialogViewTagApprover: false
+
     });
   }
   public CreateRequest = () => {
@@ -992,14 +1071,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
             const Scale5LIMITSelf = (Scale5LIMIT) * 0.9;
             ActualClaimAmountLable = Scale5LIMITSelf;
-            ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
             if (e == 'Spouse') {
               let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
               const Scale5LIMITSpouse = (Scale5LIMIT) * 0.75
               ActualClaimAmountLable = Scale5LIMITSpouse;
               // if (Scale5LIMITSpouse > 15000) {
-                ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+              ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
               //}
             }
           }
@@ -1007,50 +1086,50 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
             const Scale5LIMITSelf = (Scale5LIMIT) * 1;
             ActualClaimAmountLable = Scale5LIMITSelf;
-            ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
             if (e == 'Spouse') {
               let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
               const Scale5LIMITSpouse = (Scale5LIMIT) * 0.75
               ActualClaimAmountLable = Scale5LIMITSpouse;
               // if (Scale5LIMITSpouse > 15000) {
-                // ActualClaimAmountLable = "15000";
-                ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+              // ActualClaimAmountLable = "15000";
+              ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
-             // }
+              // }
             }
           }
           if (numberOnlyScale > 5) {
             const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
             ActualClaimAmountLable = Scale5LIMITSelf;
-            ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
             if (e == 'Spouse') {
               const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
               const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
               ActualClaimAmountLable = Scale5LIMITSpause1;
               // if (Scale5LIMITSpause1 > 20000) {
-                // ActualClaimAmountLable = "20000";
-                ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+              // ActualClaimAmountLable = "20000";
+              ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
-             // }
+              // }
             }
           }
         }
         else {
           const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
           ActualClaimAmountLable = Scale5LIMITSelf;
-          ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+          ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
           if (e == 'Spouse') {
             const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
             const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
             ActualClaimAmountLable = Scale5LIMITSpause1;
             // if (Scale5LIMITSpause1 > 20000) {
-              // ActualClaimAmountLable = "20000";
-              ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+            // ActualClaimAmountLable = "20000";
+            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
-          //  }
+            //  }
           }
         }
       }
@@ -1058,17 +1137,17 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
         const Scale5LIMITSelf1 = (Scale5LIMITSelf) * 0.9;
         ActualClaimAmountLable = Scale5LIMITSelf1;
-        ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+        ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
         if (e == 'Spouse') {
           const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
           const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
           ActualClaimAmountLable = Scale5LIMITSpause1;
           // if (ActualClaimAmountLable > 15000) {
-            // ActualClaimAmountLable = "15000"
-            ActualClaimAmountLable = Math.min((this.state.Limit -this.state.TotalAmountClaimed),ActualClaimAmountLable);
+          // ActualClaimAmountLable = "15000"
+          ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
 
-         // }
+          // }
         }
       }
 
@@ -1101,529 +1180,535 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   };
 
 
-//   public BtnSubmitRequest = async () => {
-//     this.setState({ isSubmitting: true });
-//     // "EmployeeName": "Farm Admin",
-//     // "EmployeeID": "11",
-//     // if(this.state.EmployeeName)
-//     if (this.state.DependentType == 'Spouse') {
-//       if (this.state.selectedOptionCHBx == null) {
-//         this.setState({ isSubmitting: false });
-//         alert("Please check on 'Is Spouse Exim Employee' ");
-//         return false;
-//       }
-//     }
-//     const currentDate = new Date();
-//     const currentYear = currentDate.getFullYear();
-//     const financialYearStart = new Date(currentDate.getMonth() < 3 ? currentYear - 1 : currentYear, 3, 1);
-//     const financialYearEnd = new Date(financialYearStart.getFullYear() + 1, 2, 31);
-//     let existingRequests
-//     await EmployeeOps().getEmployeeMasterById(this.props).then(results => {
-//       existingRequests = results;
-//     })
-//     let hasRequestThisYear = [];
-//     let counter = 0;
-//     // if (existingRequests.length > 0) {
-//     //   for (var e = 0; e < existingRequests.length; e++) {
-//     //     if ((existingRequests[e].DependentType == this.state.DependentType) && (existingRequests[e].EmployeeID == this.state.EmployeeID) && existingRequests[e].Status != "Rejected") {
-//     //       hasRequestThisYear = existingRequests.filter(
-//     //         (req) =>
-//     //           new Date(req.Created) >= financialYearStart &&
-//     //           new Date(req.Created) <= financialYearEnd && req.EmployeeID == this.state.EmployeeID
-//     //       );
-//     //       if (hasRequestThisYear.length > 0) {
-//     //         counter++;
-//     //       }
-//     //     }
-//     //   }
-//     // }
+  //   public BtnSubmitRequest = async () => {
+  //     this.setState({ isSubmitting: true });
+  //     // "EmployeeName": "Farm Admin",
+  //     // "EmployeeID": "11",
+  //     // if(this.state.EmployeeName)
+  //     if (this.state.DependentType == 'Spouse') {
+  //       if (this.state.selectedOptionCHBx == null) {
+  //         this.setState({ isSubmitting: false });
+  //         alert("Please check on 'Is Spouse Exim Employee' ");
+  //         return false;
+  //       }
+  //     }
+  //     const currentDate = new Date();
+  //     const currentYear = currentDate.getFullYear();
+  //     const financialYearStart = new Date(currentDate.getMonth() < 3 ? currentYear - 1 : currentYear, 3, 1);
+  //     const financialYearEnd = new Date(financialYearStart.getFullYear() + 1, 2, 31);
+  //     let existingRequests
+  //     await EmployeeOps().getEmployeeMasterById(this.props).then(results => {
+  //       existingRequests = results;
+  //     })
+  //     let hasRequestThisYear = [];
+  //     let counter = 0;
+  //     // if (existingRequests.length > 0) {
+  //     //   for (var e = 0; e < existingRequests.length; e++) {
+  //     //     if ((existingRequests[e].DependentType == this.state.DependentType) && (existingRequests[e].EmployeeID == this.state.EmployeeID) && existingRequests[e].Status != "Rejected") {
+  //     //       hasRequestThisYear = existingRequests.filter(
+  //     //         (req) =>
+  //     //           new Date(req.Created) >= financialYearStart &&
+  //     //           new Date(req.Created) <= financialYearEnd && req.EmployeeID == this.state.EmployeeID
+  //     //       );
+  //     //       if (hasRequestThisYear.length > 0) {
+  //     //         counter++;
+  //     //       }
+  //     //     }
+  //     //   }
+  //     // }
 
-//     if (existingRequests.length > 0) {
-//       // Function to normalize date (set time to 00:00:00)
-//       const normalizeDate = (date) => {
-//         let d = new Date(date);
-//         d.setHours(0, 0, 0, 0);
-//         return d;
-//       };
+  //     if (existingRequests.length > 0) {
+  //       // Function to normalize date (set time to 00:00:00)
+  //       const normalizeDate = (date) => {
+  //         let d = new Date(date);
+  //         d.setHours(0, 0, 0, 0);
+  //         return d;
+  //       };
 
-//       let financialYearStartNormalized = normalizeDate(financialYearStart);
-//       let financialYearEndNormalized = normalizeDate(financialYearEnd);
+  //       let financialYearStartNormalized = normalizeDate(financialYearStart);
+  //       let financialYearEndNormalized = normalizeDate(financialYearEnd);
 
-//       // Filter requests for the current employee and financial year
-//       let hasRequestThisYear = existingRequests.filter(
-//         (req) =>
+  //       // Filter requests for the current employee and financial year
+  //       let hasRequestThisYear = existingRequests.filter(
+  //         (req) =>
 
-//           normalizeDate(req.Created) >= financialYearStartNormalized &&
-//           normalizeDate(req.Created) <= financialYearEndNormalized &&
-//           req.EmployeeID == this.state.EmployeeID
-//       );
+  //           normalizeDate(req.Created) >= financialYearStartNormalized &&
+  //           normalizeDate(req.Created) <= financialYearEndNormalized &&
+  //           req.EmployeeID == this.state.EmployeeID
+  //       );
 
-//       for (let req of existingRequests) {
-//         if (
-//           ////  req.DependentType === this.state.DependentType && ////AP 2/7/25
-//           req.EmployeeID === this.state.EmployeeID &&
-//           req.Status !== "Rejected"
-//         ) {
-//           if (hasRequestThisYear.length > 0) {
-//             counter++;
-//             break; // Exit loop early once a match is found
-//           }
-//         }
-//       }
-//     }
-
-
-//     console.log(counter);
-//     // if (counter > 0 && this.state.EmpType != "RETIRED") {
-//     if (counter > 0) {
-//       this.setState({ isSubmitting: false });
-//       alert("You have already submitted a request this financial year!");
-//      // return false;
-//     }
-//     const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-//     const scaleValue = this.state.Scale;
-//     // const numberOnlyScale = parseFloat(scaleValue.match(/\d+$/)[0]);
-//     const CLAIMAMOUNT = this.state.ExpenseDetails ? parseFloat(this.state.ExpenseDetails.Amount) : 0;
-//     if (LIMIT == 0) {
-//       this.setState({ isSubmitting: false });
-//       alert('Please Map Limit !')
-//       return false;
-//     }
-//     /* //// AP8/7/25  if (this.state.ActualClaimAmountLable == "") {
-//         alert('Please Select Dependent Type');
-//         return false;
-//       } 
-//       if (!this.state.ExpenseDetails) {
-//         alert('Please Enter Claim Amount !!');
-//         return false;
-//       }
-//       if (this.state.ExpenseDetails.Amount == 0 || this.state.ExpenseDetails.Amount == null) {
-//         alert('Please Enter Claim Amount !!');
-//         return false;
-//       }*/
-//     if (this.state.dependentitems.length == 0 || this.state.dependentitems == null || this.state.dependentitems == undefined) {
-
-//       this.setState({ isSubmitting: false });
-//       alert('Please Enter Claim Amount !!');
-//       return false;
-//     }
-//     if (this.state.TotalAmountClaimed > LIMIT) {
-//       this.setState({ isSubmitting: false });
-//       alert('Claim Amount should be less than CHS Limit! ')
-//       return false;
-//     }
-//     /*  //// AP8/7/25  if (this.state.ActualClaimAmountLable < this.state.ExpenseDetails.Amount) {
-//         alert('Claim Amount should be less than Limit! ')
-//         return false;
-//       }*/
-
-//     const arrScaleUpto5 = ["SCALE1", "SCALE2", "SCALE3", "SCALE4", "SCALE5"];
-//     const arrScaleAbove6 = ["SCALE6", "SCALE7", "SCALE8", "GOVT"];
-
-//     if (this.state.Scale) {
-//       if (arrScaleUpto5.indexOf(this.state.Scale) !== -1) {
-//         if (Number(this.state.Age) < 40) {
-
-//         }
-//         else if (Number(this.state.Age) >= 40) {
-
-//         }
-
-//       } else if (arrScaleAbove6.indexOf(this.state.Scale) !== -1) {
-
-//       } else {
-//         console.log("Scale does not match known values");
-//       }
-//     }
+  //       for (let req of existingRequests) {
+  //         if (
+  //           ////  req.DependentType === this.state.DependentType && ////AP 2/7/25
+  //           req.EmployeeID === this.state.EmployeeID &&
+  //           req.Status !== "Rejected"
+  //         ) {
+  //           if (hasRequestThisYear.length > 0) {
+  //             counter++;
+  //             break; // Exit loop early once a match is found
+  //           }
+  //         }
+  //       }
+  //     }
 
 
-//     if (this.state.files == undefined || this.state.files == null || !this.state.files || this.state.files.length == 0) {
-//       this.setState({ isSubmitting: false });
-//       alert('Please Attach Files! ')
-//       return false;
-//     }
+  //     console.log(counter);
+  //     // if (counter > 0 && this.state.EmpType != "RETIRED") {
+  //     if (counter > 0) {
+  //       this.setState({ isSubmitting: false });
+  //       alert("You have already submitted a request this financial year!");
+  //      // return false;
+  //     }
+  //     const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+  //     const scaleValue = this.state.Scale;
+  //     // const numberOnlyScale = parseFloat(scaleValue.match(/\d+$/)[0]);
+  //     const CLAIMAMOUNT = this.state.ExpenseDetails ? parseFloat(this.state.ExpenseDetails.Amount) : 0;
+  //     if (LIMIT == 0) {
+  //       this.setState({ isSubmitting: false });
+  //       alert('Please Map Limit !')
+  //       return false;
+  //     }
+  //     /* //// AP8/7/25  if (this.state.ActualClaimAmountLable == "") {
+  //         alert('Please Select Dependent Type');
+  //         return false;
+  //       } 
+  //       if (!this.state.ExpenseDetails) {
+  //         alert('Please Enter Claim Amount !!');
+  //         return false;
+  //       }
+  //       if (this.state.ExpenseDetails.Amount == 0 || this.state.ExpenseDetails.Amount == null) {
+  //         alert('Please Enter Claim Amount !!');
+  //         return false;
+  //       }*/
+  //     if (this.state.dependentitems.length == 0 || this.state.dependentitems == null || this.state.dependentitems == undefined) {
 
-//     const spCrudObj = await useSPCRUD();
-//     var CHSRequestItem;
+  //       this.setState({ isSubmitting: false });
+  //       alert('Please Enter Claim Amount !!');
+  //       return false;
+  //     }
+  //     if (this.state.TotalAmountClaimed > LIMIT) {
+  //       this.setState({ isSubmitting: false });
+  //       alert('Claim Amount should be less than CHS Limit! ')
+  //       return false;
+  //     }
+  //     /*  //// AP8/7/25  if (this.state.ActualClaimAmountLable < this.state.ExpenseDetails.Amount) {
+  //         alert('Claim Amount should be less than Limit! ')
+  //         return false;
+  //       }*/
 
-//     const selfItem = this.state.dependentitems.find(item => item.DependentType === 'Self');
-//     const spouseItem = this.state.dependentitems.find(item => item.DependentType === 'Spouse');
+  //     const arrScaleUpto5 = ["SCALE1", "SCALE2", "SCALE3", "SCALE4", "SCALE5"];
+  //     const arrScaleAbove6 = ["SCALE6", "SCALE7", "SCALE8", "GOVT"];
 
-//     const actualEligibilityLimit = selfItem ? selfItem.ActualClaimAmountLable : (spouseItem ? spouseItem.ActualClaimAmountLable : 0);
+  //     if (this.state.Scale) {
+  //       if (arrScaleUpto5.indexOf(this.state.Scale) !== -1) {
+  //         if (Number(this.state.Age) < 40) {
 
-//     let pivotTab = "User";
-//     let dashTab = "Pending";
-//     if (!this.state.ShowHR1Tab || !this.state.ShowHR2Tab) {
-//       pivotTab = "User";
-//       dashTab = "Pending";
-//       CHSRequestItem = {
-//         OnBehalf: this.state.OnBehalf,
-//         EmployeeID: this.state.EmployeeID,
-//         Scale: this.state.Scale,
-//         EmployeeType: ''+this.state.EmployeeType,
-//         DependentType: this.state.DependentType,
-//         Status: "Pending",
-//         HR1Response: "Pending with HR1",
-//         EligibilityLimit: actualEligibilityLimit,
-//         Limit: +this.state.Limit,
-//         FinancialYear:this.state.CurrentFinancialYear,
-//         HR2Response: "Pending with HR2",
-//         RequestorEmail: this.state.CompanyEmail,
+  //         }
+  //         else if (Number(this.state.Age) >= 40) {
 
-//         IsSpouseEximMember: this.state.selectedOptionCHBx,
-//         DateofBirth: new Date(this.state.DateofBirth),
-//         Designation: this.state.DesignationTitle,
-//         Age: '' + this.state.Age,
-//         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
-//         AmountClaimed: this.state.TotalAmountClaimed,
-//         EmployeeName: this.state.EmployeeName,
-//         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-//         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-//       };
-//     }
-//     if (this.state.ShowHR1Tab) {
-//       pivotTab = "HR1";
-//       dashTab = "Approved";
-// if(this.state.OnBehalf == "Yes"){
-//   let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-//   if ( this.state.EmployeeType == "RETIRED") {
-//     hrApprovedAmount = this.state.TotalAmountClaimed
-//   }
-//   CHSRequestItem = {
-//     OnBehalf: this.state.OnBehalf,
-//     EmployeeID: this.state.EmployeeID,
-//     Scale: this.state.Scale,
-//     EmployeeType: ''+this.state.EmployeeType,
-//     DependentType: this.state.DependentType,
-//     Status: "Approved",
-//     HR1Response: "Approved by HR1",
-//     IsSpouseEximMember: this.state.selectedOptionCHBx,
-//     RequestorEmail: this.state.CompanyEmail,
-//     FinancialYear:this.state.CurrentFinancialYear,
+  //         }
 
-//     // HR2Response: "",
-//     HR1ApproverNameId: this.state.Currentuser.Id,
-//     HR2Response: "Approved by HR2",
-//     HR1ResponseDate: new Date(),
-//     EligibilityLimit: actualEligibilityLimit,
-//     Limit: +this.state.Limit,
-//     DateofBirth: new Date(this.state.DateofBirth),
-//     Designation: this.state.DesignationTitle,
-//     Age: '' + this.state.Age,
-//     ////AmountClaimed: +this.state.ExpenseDetails.Amount,  //AP 8/7/25
-//     AmountClaimed: this.state.TotalAmountClaimed,
-//     HRApprovedAmount: +hrApprovedAmount,
-//     EmployeeName: this.state.EmployeeName,
-//     DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-//     HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-//   };
-// }
+  //       } else if (arrScaleAbove6.indexOf(this.state.Scale) !== -1) {
 
-     
-//     }
-//     if (this.state.ShowHR2Tab) {
-//       pivotTab = "HR2";
-//       dashTab = "Approved";
-// if(this.state.OnBehalf == "Yes"){
-//       let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-//       if ( this.state.EmployeeType == "RETIRED") {
-//         hrApprovedAmount = this.state.TotalAmountClaimed
-//       }
+  //       } else {
+  //         console.log("Scale does not match known values");
+  //       }
+  //     }
 
-//       CHSRequestItem = {
-//         OnBehalf: this.state.OnBehalf,
-//         EmployeeID: this.state.EmployeeID,
-//         Scale: this.state.Scale,
-//         EmployeeType: ''+this.state.EmployeeType,
-//         DependentType: this.state.DependentType,
-//         Status: "Approved",
-//         // HR1Response: "",
-//         HR2Response: "Approved by HR2",
-//         HR1Response: "Approved by HR1",
-//         FinancialYear:this.state.CurrentFinancialYear,
 
-//         IsSpouseEximMember: this.state.selectedOptionCHBx,
-//         RequestorEmail: this.state.CompanyEmail,
+  //     if (this.state.files == undefined || this.state.files == null || !this.state.files || this.state.files.length == 0) {
+  //       this.setState({ isSubmitting: false });
+  //       alert('Please Attach Files! ')
+  //       return false;
+  //     }
 
-//         HR2ApproverNameId: this.state.Currentuser.Id,
-//         // HR2Response: "Pending with HR2",
-//         HR2ResponseDate: new Date(),
-//         EligibilityLimit: actualEligibilityLimit,
-//         Limit: +this.state.Limit,
-//         DateofBirth: new Date(this.state.DateofBirth),
-//         Designation: this.state.DesignationTitle,
-//         Age: '' + this.state.Age,
-//         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
-//         AmountClaimed: this.state.TotalAmountClaimed,
-//         HRApprovedAmount: +hrApprovedAmount,
-//         EmployeeName: this.state.EmployeeName,
-//         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-//         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-//       };
-//     }
-//     else{
-//       CHSRequestItem = {
-//         OnBehalf: this.state.OnBehalf,
-//         EmployeeID: this.state.EmployeeID,
-//         Scale: this.state.Scale,
-//         EmployeeType:''+ this.state.EmployeeType,
-//         DependentType: this.state.DependentType,
-//         Status: "Pending",
-//         HR1Response: "Pending with HR1",
-//         EligibilityLimit: actualEligibilityLimit,
-//         Limit: +this.state.Limit,
-//         FinancialYear:this.state.CurrentFinancialYear,
-//         HR2Response: "Pending with HR2",
-//         RequestorEmail: this.state.CompanyEmail,
-    
-//         IsSpouseEximMember: this.state.selectedOptionCHBx,
-//         DateofBirth: new Date(this.state.DateofBirth),
-//         Designation: this.state.DesignationTitle,
-//         Age: '' + this.state.Age,
-//         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
-//         AmountClaimed: this.state.TotalAmountClaimed,
-//         EmployeeName: this.state.EmployeeName,
-//         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-//         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-//       };
-//     }
-//   }
-  
-//     // return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
-//     //   this.setState({ reqID: req.data.ID });
-//     //   const RequestNoGenerate = {
-//     //     Title: 'CHS000' + req.data.ID,
-//     //   };
-//     //   await spCrudObj.updateData("HealthCheckupService", req.data.ID, RequestNoGenerate, this.props)
-//     //   if (this.state.files && this.state.files.length > 0) {
-//     //     await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-//     //     alert('CHS Request Submitted Successfully!');
-//     //     this.setState({ isSubmitting: false });
-//     //     this.closeDialog();
-//     //     location.reload();
-//     //   } else {
-//     //     alert('CHS Request Submitted without attachments.');
-//     //     return false;
-//     //   }
-//     //   return req;
-//     // });
+  //     const spCrudObj = await useSPCRUD();
+  //     var CHSRequestItem;
 
-//     return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
-//       this.setState({ reqID: req.data.ID });
+  //     const selfItem = this.state.dependentitems.find(item => item.DependentType === 'Self');
+  //     const spouseItem = this.state.dependentitems.find(item => item.DependentType === 'Spouse');
 
-//       const RequestNoGenerate = {
-//         Title: 'CHS000' + req.data.ID,
-//       };
+  //     const actualEligibilityLimit = selfItem ? selfItem.ActualClaimAmountLable : (spouseItem ? spouseItem.ActualClaimAmountLable : 0);
 
-//       await spCrudObj.updateData("HealthCheckupService", req.data.ID, RequestNoGenerate, this.props);
+  //     let pivotTab = "User";
+  //     let dashTab = "Pending";
+  //     if (!this.state.ShowHR1Tab || !this.state.ShowHR2Tab) {
+  //       pivotTab = "User";
+  //       dashTab = "Pending";
+  //       CHSRequestItem = {
+  //         OnBehalf: this.state.OnBehalf,
+  //         EmployeeID: this.state.EmployeeID,
+  //         Scale: this.state.Scale,
+  //         EmployeeType: ''+this.state.EmployeeType,
+  //         DependentType: this.state.DependentType,
+  //         Status: "Pending",
+  //         HR1Response: "Pending with HR1",
+  //         EligibilityLimit: actualEligibilityLimit,
+  //         Limit: +this.state.Limit,
+  //         FinancialYear:this.state.CurrentFinancialYear,
+  //         HR2Response: "Pending with HR2",
+  //         RequestorEmail: this.state.CompanyEmail,
 
-//       if (this.state.files && this.state.files.length > 0) {
-//         await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-//         alert('CHS Request Submitted Successfully!');
-//       } else {
-//         alert('CHS Request Submitted without attachments.');
-//       }
+  //         IsSpouseEximMember: this.state.selectedOptionCHBx,
+  //         DateofBirth: new Date(this.state.DateofBirth),
+  //         Designation: this.state.DesignationTitle,
+  //         Age: '' + this.state.Age,
+  //         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
+  //         AmountClaimed: this.state.TotalAmountClaimed,
+  //         EmployeeName: this.state.EmployeeName,
+  //         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+  //         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
+  //       };
+  //     }
+  //     if (this.state.ShowHR1Tab) {
+  //       pivotTab = "HR1";
+  //       dashTab = "Approved";
+  // if(this.state.OnBehalf == "Yes"){
+  //   let hrApprovedAmount = this.state.ExpenseDetails.Amount;
+  //   if ( this.state.EmployeeType == "RETIRED") {
+  //     hrApprovedAmount = this.state.TotalAmountClaimed
+  //   }
+  //   CHSRequestItem = {
+  //     OnBehalf: this.state.OnBehalf,
+  //     EmployeeID: this.state.EmployeeID,
+  //     Scale: this.state.Scale,
+  //     EmployeeType: ''+this.state.EmployeeType,
+  //     DependentType: this.state.DependentType,
+  //     Status: "Approved",
+  //     HR1Response: "Approved by HR1",
+  //     IsSpouseEximMember: this.state.selectedOptionCHBx,
+  //     RequestorEmail: this.state.CompanyEmail,
+  //     FinancialYear:this.state.CurrentFinancialYear,
 
-//       // Ensure dialog closes and dashboard reloads
-//       this.setState({ isSubmitting: false });
-//       this.closeDialog();
+  //     // HR2Response: "",
+  //     HR1ApproverNameId: this.state.Currentuser.Id,
+  //     HR2Response: "Approved by HR2",
+  //     HR1ResponseDate: new Date(),
+  //     EligibilityLimit: actualEligibilityLimit,
+  //     Limit: +this.state.Limit,
+  //     DateofBirth: new Date(this.state.DateofBirth),
+  //     Designation: this.state.DesignationTitle,
+  //     Age: '' + this.state.Age,
+  //     ////AmountClaimed: +this.state.ExpenseDetails.Amount,  //AP 8/7/25
+  //     AmountClaimed: this.state.TotalAmountClaimed,
+  //     HRApprovedAmount: +hrApprovedAmount,
+  //     EmployeeName: this.state.EmployeeName,
+  //     DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+  //     HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
+  //   };
+  // }
 
-//       // Force dashboard reload
-//         window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
-//       //window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=` + dashTab + `&ptab=` + pivotTab;  // Update the URL path to your dashboard route
 
-//       return req;
-//     });
-//   };
- 
+  //     }
+  //     if (this.state.ShowHR2Tab) {
+  //       pivotTab = "HR2";
+  //       dashTab = "Approved";
+  // if(this.state.OnBehalf == "Yes"){
+  //       let hrApprovedAmount = this.state.ExpenseDetails.Amount;
+  //       if ( this.state.EmployeeType == "RETIRED") {
+  //         hrApprovedAmount = this.state.TotalAmountClaimed
+  //       }
 
-public BtnSubmitRequest = async () => {
-  this.setState({ isSubmitting: true });
+  //       CHSRequestItem = {
+  //         OnBehalf: this.state.OnBehalf,
+  //         EmployeeID: this.state.EmployeeID,
+  //         Scale: this.state.Scale,
+  //         EmployeeType: ''+this.state.EmployeeType,
+  //         DependentType: this.state.DependentType,
+  //         Status: "Approved",
+  //         // HR1Response: "",
+  //         HR2Response: "Approved by HR2",
+  //         HR1Response: "Approved by HR1",
+  //         FinancialYear:this.state.CurrentFinancialYear,
 
-  try {
-    // Step 1: Basic Validation
-    if (this.state.DependentType === "Spouse" && this.state.selectedOptionCHBx == null) {
-      return this.fail("Please check on 'Is Spouse Exim Employee'");
+  //         IsSpouseEximMember: this.state.selectedOptionCHBx,
+  //         RequestorEmail: this.state.CompanyEmail,
+
+  //         HR2ApproverNameId: this.state.Currentuser.Id,
+  //         // HR2Response: "Pending with HR2",
+  //         HR2ResponseDate: new Date(),
+  //         EligibilityLimit: actualEligibilityLimit,
+  //         Limit: +this.state.Limit,
+  //         DateofBirth: new Date(this.state.DateofBirth),
+  //         Designation: this.state.DesignationTitle,
+  //         Age: '' + this.state.Age,
+  //         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
+  //         AmountClaimed: this.state.TotalAmountClaimed,
+  //         HRApprovedAmount: +hrApprovedAmount,
+  //         EmployeeName: this.state.EmployeeName,
+  //         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+  //         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
+  //       };
+  //     }
+  //     else{
+  //       CHSRequestItem = {
+  //         OnBehalf: this.state.OnBehalf,
+  //         EmployeeID: this.state.EmployeeID,
+  //         Scale: this.state.Scale,
+  //         EmployeeType:''+ this.state.EmployeeType,
+  //         DependentType: this.state.DependentType,
+  //         Status: "Pending",
+  //         HR1Response: "Pending with HR1",
+  //         EligibilityLimit: actualEligibilityLimit,
+  //         Limit: +this.state.Limit,
+  //         FinancialYear:this.state.CurrentFinancialYear,
+  //         HR2Response: "Pending with HR2",
+  //         RequestorEmail: this.state.CompanyEmail,
+
+  //         IsSpouseEximMember: this.state.selectedOptionCHBx,
+  //         DateofBirth: new Date(this.state.DateofBirth),
+  //         Designation: this.state.DesignationTitle,
+  //         Age: '' + this.state.Age,
+  //         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
+  //         AmountClaimed: this.state.TotalAmountClaimed,
+  //         EmployeeName: this.state.EmployeeName,
+  //         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+  //         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
+  //       };
+  //     }
+  //   }
+
+  //     // return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
+  //     //   this.setState({ reqID: req.data.ID });
+  //     //   const RequestNoGenerate = {
+  //     //     Title: 'CHS000' + req.data.ID,
+  //     //   };
+  //     //   await spCrudObj.updateData("HealthCheckupService", req.data.ID, RequestNoGenerate, this.props)
+  //     //   if (this.state.files && this.state.files.length > 0) {
+  //     //     await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
+  //     //     alert('CHS Request Submitted Successfully!');
+  //     //     this.setState({ isSubmitting: false });
+  //     //     this.closeDialog();
+  //     //     location.reload();
+  //     //   } else {
+  //     //     alert('CHS Request Submitted without attachments.');
+  //     //     return false;
+  //     //   }
+  //     //   return req;
+  //     // });
+
+  //     return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
+  //       this.setState({ reqID: req.data.ID });
+
+  //       const RequestNoGenerate = {
+  //         Title: 'CHS000' + req.data.ID,
+  //       };
+
+  //       await spCrudObj.updateData("HealthCheckupService", req.data.ID, RequestNoGenerate, this.props);
+
+  //       if (this.state.files && this.state.files.length > 0) {
+  //         await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
+  //         alert('CHS Request Submitted Successfully!');
+  //       } else {
+  //         alert('CHS Request Submitted without attachments.');
+  //       }
+
+  //       // Ensure dialog closes and dashboard reloads
+  //       this.setState({ isSubmitting: false });
+  //       this.closeDialog();
+
+  //       // Force dashboard reload
+  //         window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
+  //       //window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=` + dashTab + `&ptab=` + pivotTab;  // Update the URL path to your dashboard route
+
+  //       return req;
+  //     });
+  //   };
+
+
+  public BtnSubmitRequest = async () => {
+    this.setState({ isSubmitting: true });
+
+    try {
+      // Step 1: Basic Validation
+      if (this.state.DependentType === "Spouse" && this.state.selectedOptionCHBx == null) {
+        return this.fail("Please check on 'Is Spouse Exim Employee'");
+      }
+
+      if (!this.state.dependentitems.length) {
+        return this.fail("Please Enter Claim Amount !!");
+      }
+
+      if (!this.state.files) {
+        return this.fail("Please Attach Files!");
+        return false;
+      }
+
+      const LIMIT = parseFloat(this.state.Limit) || 0;
+      if (LIMIT === 0) {
+        return this.fail("Please Map Limit!");
+      }
+
+      if (this.state.TotalAmountClaimed > LIMIT) {
+        return this.fail("Claim Amount should be less than CHS Limit!");
+      }
+
+      // Step 2: Check Existing Requests
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const fyStart = new Date(currentDate.getMonth() < 3 ? currentYear - 1 : currentYear, 3, 1);
+      const fyEnd = new Date(fyStart.getFullYear() + 1, 2, 31);
+
+      const normalizeDate = (date: any) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      };
+
+      const existingRequests = await EmployeeOps().getEmployeeMasterById(this.props);
+      const hasRequestThisYear = existingRequests.filter(
+        (req) =>
+          normalizeDate(req.Created) >= normalizeDate(fyStart) &&
+          normalizeDate(req.Created) <= normalizeDate(fyEnd) &&
+          req.EmployeeID === this.state.EmployeeID
+      );
+
+      const duplicateExists = hasRequestThisYear.some((req) => req.Status !== "Rejected");
+      if (duplicateExists) {
+        return this.fail("You have already submitted a request this financial year!");
+        return false;
+      }
+
+      // Step 3: Build Request Item
+      const spCrudObj = await useSPCRUD();
+      const { CHSRequestItem, pivotTab, dashTab } = this.buildCHSRequestItem();
+
+      // Step 4: Insert Data
+      const req = await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props);
+      this.setState({ reqID: req.data.ID });
+
+      await spCrudObj.updateData("HealthCheckupService", req.data.ID, {
+        Title: "CHS000" + req.data.ID,
+      }, this.props);
+
+      if (this.state.files && this.state.files.length) {
+        await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
+        alert("CHS Request Submitted Successfully!");
+      } else {
+        alert("CHS Request Submitted without attachments.");
+      }
+
+      // Step 5: Reset UI
+      this.setState({ isSubmitting: false });
+      this.closeDialog();
+
+      // Redirect to Dashboard
+      window.location.href =
+        `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=${dashTab}&ptab=${pivotTab}`;
+
+      return req;
+    } catch (err) {
+      console.error("Submit error:", err);
+      this.setState({ isSubmitting: false });
+      alert("An error occurred while submitting the request.");
     }
-
-    if (!this.state.dependentitems.length) {
-      return this.fail("Please Enter Claim Amount !!");
-    }
-
-    if (!this.state.files) {
-      return this.fail("Please Attach Files!");
-      return false;
-    }
-
-    const LIMIT = parseFloat(this.state.Limit) || 0;
-    if (LIMIT === 0) {
-      return this.fail("Please Map Limit!");
-    }
-
-    if (this.state.TotalAmountClaimed > LIMIT) {
-      return this.fail("Claim Amount should be less than CHS Limit!");
-    }
-
-    // Step 2: Check Existing Requests
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const fyStart = new Date(currentDate.getMonth() < 3 ? currentYear - 1 : currentYear, 3, 1);
-    const fyEnd = new Date(fyStart.getFullYear() + 1, 2, 31);
-
-    const normalizeDate = (date: any) => {
-      const d = new Date(date);
-      d.setHours(0, 0, 0, 0);
-      return d;
-    };
-
-    const existingRequests = await EmployeeOps().getEmployeeMasterById(this.props);
-    const hasRequestThisYear = existingRequests.filter(
-      (req) =>
-        normalizeDate(req.Created) >= normalizeDate(fyStart) &&
-        normalizeDate(req.Created) <= normalizeDate(fyEnd) &&
-        req.EmployeeID === this.state.EmployeeID
-    );
-
-    const duplicateExists = hasRequestThisYear.some((req) => req.Status !== "Rejected");
-    if (duplicateExists) {
-      return this.fail("You have already submitted a request this financial year!");
-      return false;
-    }
-
-    // Step 3: Build Request Item
-    const spCrudObj = await useSPCRUD();
-    const { CHSRequestItem, pivotTab, dashTab } = this.buildCHSRequestItem();
-
-    // Step 4: Insert Data
-    const req = await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props);
-    this.setState({ reqID: req.data.ID });
-
-    await spCrudObj.updateData("HealthCheckupService", req.data.ID, {
-      Title: "CHS000" + req.data.ID,
-    }, this.props);
-
-    if (this.state.files &&this.state.files.length) {
-      await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-      alert("CHS Request Submitted Successfully!");
-    } else {
-      alert("CHS Request Submitted without attachments.");
-    }
-
-    // Step 5: Reset UI
-    this.setState({ isSubmitting: false });
-    this.closeDialog();
-
-    // Redirect to Dashboard
-    window.location.href =
-      `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=${dashTab}&ptab=${pivotTab}`;
-
-    return req;
-  } catch (err) {
-    console.error("Submit error:", err);
-    this.setState({ isSubmitting: false });
-    alert("An error occurred while submitting the request.");
-  }
-};
-
-/**
- * Helper: show alert and stop submission
- */
-private fail(message: string) {
-  this.setState({ isSubmitting: false });
-  alert(message);
-  return false;
-}
-
-/**
- * Helper: build request payload
- */
-private buildCHSRequestItem() {
-  let pivotTab = "User";
-  let dashTab = "Pending";
-  const selfItem = this.state.dependentitems.find((i) => i.DependentType === "Self");
-  const spouseItem = this.state.dependentitems.find((i) => i.DependentType === "Spouse");
-  const actualEligibilityLimit = selfItem.ActualClaimAmountLable || spouseItem.ActualClaimAmountLable || 0;
-
-  const dob = this.state.DateofBirth; // "25-6-1956"
-  const [day, month, year] = dob.split("-"); 
-  
-  // Convert to YYYY-MM-DD
-  const formatted = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  
- 
-  let item: any = {
-    OnBehalf: this.state.OnBehalf,
-    EmployeeID: this.state.EmployeeID,
-    Scale: this.state.Scale,
-    EmployeeType: "" + this.state.EmployeeType,
-    DependentType: this.state.DependentType,
-    Status: "Pending",
-    HR1Response: "Pending with HR1",
-    HR2Response: "Pending with HR2",
-    EligibilityLimit: actualEligibilityLimit,
-    Limit: +this.state.Limit,
-    FinancialYear: this.state.CurrentFinancialYear,
-    RequestorEmail: this.state.CompanyEmail,
-    IsSpouseEximMember: this.state.selectedOptionCHBx,
-    DateofBirth: new Date(formatted), //this.state.DateofBirth?new Date(this.state.DateofBirth):this.state.DateofBirth,
-    Designation: this.state.DesignationTitle,
-    Age: "" + this.state.Age,
-    AmountClaimed: this.state.TotalAmountClaimed,
-    EmployeeName: this.state.EmployeeName,
-    DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-    HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired,
   };
 
-  // HR1 Flow
-  if (this.state.ShowHR1Tab) {
-    pivotTab = "HR1";
-    dashTab = "Approved";
-
-    if (this.state.OnBehalf === "Yes") {
-      const hrApprovedAmount =
-        this.state.EmployeeType === "RETIRED"
-          ? this.state.TotalAmountClaimed
-          : this.state.ExpenseDetails.Amount;
-
-      item = {
-        ...item,
-        Status: "Approved",
-        HR1Response: "Approved by HR1",
-        HR2Response: "Approved by HR2",
-        HR1ApproverNameId: this.state.Currentuser.Id,
-        HR1ResponseDate: new Date(),
-        HRApprovedAmount: +hrApprovedAmount,
-      };
-    }
+  /**
+   * Helper: show alert and stop submission
+   */
+  private fail(message: string) {
+    this.setState({ isSubmitting: false });
+    alert(message);
+    return false;
   }
 
-  // HR2 Flow
-  if (this.state.ShowHR2Tab) {
-    pivotTab = "HR2";
-    dashTab = "Approved";
+  /**
+   * Helper: build request payload
+   */
+  private buildCHSRequestItem() {
+    let pivotTab = "User";
+    let dashTab = "Pending";
+    const selfItem = this.state.dependentitems.find((i) => i.DependentType === "Self");
+    const spouseItem = this.state.dependentitems.find((i) => i.DependentType === "Spouse");
+    const actualEligibilityLimit = selfItem.ActualClaimAmountLable || spouseItem.ActualClaimAmountLable || 0;
 
-    if (this.state.OnBehalf === "Yes") {
-      const hrApprovedAmount =
-        this.state.EmployeeType === "RETIRED"
-          ? this.state.TotalAmountClaimed
-          : this.state.ExpenseDetails.Amount;
+    const dob = this.state.DateofBirth; // "25-6-1956"
+    const [day, month, year] = dob.split("-");
 
-      item = {
-        ...item,
-        Status: "Approved",
-        HR2Response: "Approved by HR2",
-        HR1Response: "Approved by HR1",
-        HR2ApproverNameId: this.state.Currentuser.Id,
-        HR2ResponseDate: new Date(),
-        HRApprovedAmount: +hrApprovedAmount,
-      };
+    // Convert to YYYY-MM-DD
+    const formatted = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+
+
+    let item: any = {
+      OnBehalf: this.state.OnBehalf,
+      EmployeeID: this.state.EmployeeID,
+      Scale: this.state.Scale,
+      EmployeeType: "" + this.state.EmployeeType,
+      DependentType: this.state.DependentType,
+      Status: "Pending",
+      HR1Response: "Pending with HR1",
+      HR2Response: "Pending with HR2",
+      EligibilityLimit: actualEligibilityLimit,
+      Limit: +this.state.Limit,
+      FinancialYear: this.state.CurrentFinancialYear,
+      RequestorEmail: this.state.CompanyEmail,
+      IsSpouseEximMember: this.state.selectedOptionCHBx,
+      DateofBirth: new Date(formatted), //this.state.DateofBirth?new Date(this.state.DateofBirth):this.state.DateofBirth,
+      Designation: this.state.DesignationTitle,
+      Age: "" + this.state.Age,
+      AmountClaimed: this.state.TotalAmountClaimed,
+      EmployeeName: this.state.EmployeeName,
+      DependentClaimDetails: JSON.stringify(this.state.dependentitems),
+      HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired,
+    };
+
+    // HR1 Flow
+    if (this.state.ShowHR1Tab) {
+      pivotTab = "HR1";
+      dashTab = "Approved";
+
+      if (this.state.OnBehalf === "Yes") {
+        const hrApprovedAmount =
+          this.state.EmployeeType === "RETIRED"
+            ? this.state.TotalAmountClaimed
+            : this.state.ExpenseDetails.Amount;
+
+        item = {
+          ...item,
+          Status: "Pending",
+          HR1Response: "Approved by HR1",
+          HR2Response: "Approved by HR2",
+          TagApproverResponse: "Pending with TagApprover",
+
+          HR1ApproverNameId: this.state.Currentuser.Id,
+          HR1ResponseDate: new Date(),
+          HRApprovedAmount: +hrApprovedAmount,
+        };
+      }
     }
+
+    // HR2 Flow
+    if (this.state.ShowHR2Tab) {
+      pivotTab = "HR2";
+      dashTab = "Approved";
+
+      if (this.state.OnBehalf === "Yes") {
+        const hrApprovedAmount =
+          this.state.EmployeeType === "RETIRED"
+            ? this.state.TotalAmountClaimed
+            : this.state.ExpenseDetails.Amount;
+
+        item = {
+          ...item,
+          Status: "Pending",
+          HR2Response: "Approved by HR2",
+          HR1Response: "Approved by HR1",
+          TagApproverResponse: "Pending with TagApprover",
+
+          HR2ApproverNameId: this.state.Currentuser.Id,
+          HR2ResponseDate: new Date(),
+          HRApprovedAmount: +hrApprovedAmount,
+        };
+      }
+    }
+
+       
+
+    return { CHSRequestItem: item, pivotTab, dashTab };
   }
 
-  return { CHSRequestItem: item, pivotTab, dashTab };
-}
-
-public BtnApproveHR1Request = async () => {
+  public BtnApproveHR1Request = async () => {
     this.setState({ isApproving: true });
     if (!this.state.ExpenseDetails) {
       alert('Please mention Remarks ');
@@ -1649,6 +1734,8 @@ public BtnApproveHR1Request = async () => {
       HR1Response: "Approved by HR1",
       HR1ApproverNameId: this.state.Currentuser.Id,
       HR2Response: "Pending with HR2",
+      TagApproverResponse: "Pending with TagApprover",
+
       HR1ResponseDate: new Date(),
       HR1Remark: this.state.ExpenseDetails.HR1Remarks,
       FinalAmount: +this.state.ExpenseDetails.HR1FinalAmount
@@ -1686,8 +1773,10 @@ public BtnApproveHR1Request = async () => {
     const spCrudObj = await useSPCRUD();
     var CHSRequestItem = {
       HR2ApproverNameId: this.state.Currentuser.Id,
-      Status: "Approved",
+      Status: "Pending",
       HR2Response: "Approved by HR2",
+      TagApproverResponse: "Pending with TagApprover",
+
       HR2ResponseDate: new Date(),
       HRApprovedAmount: +this.state.ExpenseDetails.HR2FinalAmount,
       HR2Remark: this.state.ExpenseDetails.HR2Remarks
@@ -1696,7 +1785,48 @@ public BtnApproveHR1Request = async () => {
       alert('CHS Request Approved Successfully!');
       this.setState({ isApproving: false });
       this.closeDialog()
-    //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
+      //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
+      window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Approved&ptab=HR2`;  // Update the URL path to your dashboard route
+
+      return req;
+    });
+  };
+
+  public BtnApproveTagApprovedRequest = async () => {
+    this.setState({ isApproving: true });
+    // if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.EligibilityLimit) {
+    //   alert('Final Claim Amount should be less than Eligible Limit! ');
+    //   this.setState({ isApproving: false });
+    //   return false;
+    // }
+    // if (!this.state.ExpenseDetails) {
+    //   alert('Please mention Remarks ');
+    //   this.setState({ isApproving: false });
+    //   return false;
+    // }
+    // if (!this.state.ExpenseDetails) {
+    //   if (this.state.ExpenseDetails.HR2FinalAmount == 0) {
+    //     alert('Please Enter Final Amount ');
+    //     this.setState({ isApproving: false });
+    //     return false;
+    //   }
+    // }
+
+
+    const spCrudObj = await useSPCRUD();
+    var CHSRequestItem = {
+      TagApproverNameId: this.state.Currentuser.Id,
+      Status: "Approved",
+      TagApproverResponse: "Approved by TagApprover",
+      TagApproverResponseDate: new Date(),
+      // HRApprovedAmount: +this.state.ExpenseDetails.HR2FinalAmount,
+      TagApproverRemark: this.state.ExpenseDetails.TagApproverRemarks
+    };
+    return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
+      alert('CHS Request Approved Successfully!');
+      this.setState({ isApproving: false });
+      this.closeDialog()
+      //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
       window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Approved&ptab=HR2`;  // Update the URL path to your dashboard route
 
       return req;
@@ -1732,7 +1862,7 @@ public BtnApproveHR1Request = async () => {
         alert('CHS Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
-         //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
+        //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
         window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Rejected&ptab=HR1`;  // Update the URL path to your dashboard route
 
         return req;
@@ -1771,6 +1901,34 @@ public BtnApproveHR1Request = async () => {
         this.closeDialog();
         //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
         window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Rejected&ptab=HR2`;  // Update the URL path to your dashboard route
+
+        return req;
+      });
+
+    }
+
+    if (HRTYPE == 'TagApprover') {
+      if (
+        this.state.ExpenseDetails.TagApproverRemarks == undefined ||
+
+        this.state.ExpenseDetails.TagApproverRemarks == "") {
+        alert('Please mention Remarks ');
+        this.setState({ isRejecting: false });
+        return false;
+      }
+      const CHSRequestItem = {
+        Status: "Rejected",
+        TagApproverResponse: "Rejected by TagApprover",
+        TagApproverNameId: this.state.Currentuser.Id,
+
+        TagApproverRemark: this.state.ExpenseDetails.TagApproverRemarks
+      };
+      return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
+        alert('CHS Request Rejected Successfully!');
+        this.setState({ isRejecting: false });
+        this.closeDialog();
+        //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
+        window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Rejected&ptab=TagApprover`;  // Update the URL path to your dashboard route
 
         return req;
       });
@@ -1849,6 +2007,10 @@ public BtnApproveHR1Request = async () => {
       return UserPending;
     });
   };
+
+
+
+
   public HR2ApproveApprovedDashboards = async () => {
     return await EmployeeOps().HR2getApproveApprovedDashboard(this.props).then(UserApproved => {
       this.setState({ HR2ApproverApprDashboard: UserApproved, allDashboardDataHR2Approved: UserApproved });
@@ -1858,6 +2020,30 @@ public BtnApproveHR1Request = async () => {
   public HR2ApproveRejectedDashboards = async () => {
     return await EmployeeOps().HR2getApproveRejectedDashboard(this.props).then(UserRejected => {
       this.setState({ HR2ApproverRejectDashboard: UserRejected, allDashboardDataHR2Rejected: UserRejected });
+      return UserRejected;
+    });
+  };
+
+
+  public TagApproverPendingDashboard = async () => {
+    return await EmployeeOps().TagApprovergetApproveDashboard(this.props).then(UserPending => {
+      this.setState({ TagApproverPendingDashboard: UserPending, allDashboardDataTagApproverPending: UserPending });
+      return UserPending;
+    });
+  };
+
+
+
+
+  public TagApproverApprovedDashboards = async () => {
+    return await EmployeeOps().TagApprovergetApproveApprovedDashboard(this.props).then(UserApproved => {
+      this.setState({ TagApproverApprDashboard: UserApproved, allDashboardDataTagApproverApproved: UserApproved });
+      return UserApproved;
+    });
+  };
+  public TagApproverRejectedDashboards = async () => {
+    return await EmployeeOps().TagApprovergetApproveRejectedDashboard(this.props).then(UserRejected => {
+      this.setState({ TagApproverApproverRejectDashboard: UserRejected, allDashboardDataTagApproverRejected: UserRejected });
       return UserRejected;
     });
   };
@@ -1984,7 +2170,7 @@ public BtnApproveHR1Request = async () => {
           DependentType: "",
           AmountClaimed: "",
           ActualClaimAmountLable: ""
-          
+
         }, () => {
           const dependentTypesCSV = this.state.dependentitems
             .map(item => item.DependentType)
@@ -2026,10 +2212,10 @@ public BtnApproveHR1Request = async () => {
       this.setState({
         TotalAmountClaimed: totalClaimed,
         DependentType: "",
-        ActualClaimAmountLable:0
+        ActualClaimAmountLable: 0
 
 
-        
+
       });
     });
   };
@@ -2066,6 +2252,39 @@ public BtnApproveHR1Request = async () => {
     });
   };
 
+
+  handleDropdownChangeDashTagApproverApproved = (event, option) => {
+    const selectedType = event.key;
+    this.setState({ DependentType: selectedType }, () => {
+      // this.filterDashboardData();
+
+      const { allDashboardDataTagApproverApproved, DependentType } = this.state;
+
+      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverApproved : allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === DependentType);
+
+      this.setState({
+        TagApproverApproverApprDashboard: filteredData
+      });
+
+    });
+  };
+
+  handleDropdownChangeDashTagApproverRejected = (event, option) => {
+    const selectedType = event.key;
+    this.setState({ DependentType: selectedType }, () => {
+      // this.filterDashboardData();
+
+      const { allDashboardDataTagApproverRejected, DependentType } = this.state;
+
+      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverRejected : allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === DependentType);
+
+      this.setState({
+        TagApproverApproverRejectDashboard: filteredData
+      });
+
+    });
+  };
+
   handleDropdownChangeDashHR2Pending = (event, option) => {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
@@ -2079,6 +2298,21 @@ public BtnApproveHR1Request = async () => {
 
     });
   };
+
+  handleDropdownChangeDashTagApproverPending = (event, option) => {
+    const selectedType = event.key;
+    this.setState({ DependentType: selectedType }, () => {
+      const { allDashboardDataTagApproverPending, DependentType } = this.state;
+
+      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverPending : allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === DependentType);
+
+      this.setState({
+        TagApproverApprPendingDashboard: filteredData
+      });
+
+    });
+  };
+
 
 
   handleDropdownChangeDashHR1Approved = (event, option) => {
@@ -2185,6 +2419,13 @@ public BtnApproveHR1Request = async () => {
     this.setState({ activeHR2Tab: tabName });
 
   };
+
+  private openTagApproverInnerTab = (tabName: string): void => {
+    localStorage.setItem("activeTagApproverTab", tabName);
+    this.setState({ activeTagApproverTab: tabName });
+
+  };
+
   private openHR1InnerTab = (tabName: string): void => {
     localStorage.setItem("activeHR1Tab", tabName);
     this.setState({ activeHR1Tab: tabName });
@@ -2230,14 +2471,14 @@ public BtnApproveHR1Request = async () => {
                 <PrimaryButton className='btn-primary' style={{ marginLeft: "10px" }} text="Report for Age-based Health Checkup" onClick={this.exportToExcel} hidden={!showReportButton} />
               </div>
 
-              <Pivot selectedKey={this.state.selectedOuterTab || "User"} 
+              <Pivot selectedKey={this.state.selectedOuterTab || "User"}
                 onLinkClick={(item) => this.setState({ selectedOuterTab: item.props.itemKey })}
                 linkSize={PivotLinkSize.large} linkFormat={PivotLinkFormat.tabs}>
 
                 <PivotItem headerText="User Dashboard" itemKey="User" hidden={!this.state.ShowHRTab} className="tab-box"  >
                   <div className="row">
                     <div className={`${styles.tabnav} col-md-2`}>
-                      <button 
+                      <button
                         className={`tablink ${this.state.activeHRdashTab === 'Pending' ? 'active' : ''}`}
                         onClick={() => this.openHRInnerTab('Pending')}
                       >
@@ -2407,8 +2648,8 @@ public BtnApproveHR1Request = async () => {
                     </div>
                   </div>
                 </PivotItem>
-                          
-                <PivotItem headerText="HR1 Approver Dashboard" itemKey="HR1" hidden={!this.state.ShowHR1Tab } className="tab-box"  >
+
+                <PivotItem headerText="HR1 Approver Dashboard" itemKey="HR1" hidden={!this.state.ShowHR1Tab} className="tab-box"  >
                   <div className="row">
                     <div className={`${styles.tabnav} col-md-2`}>
                       <button
@@ -2814,7 +3055,7 @@ public BtnApproveHR1Request = async () => {
                                   <td>{items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
 
-                                  
+
                                   <td>{items.Status}</td>
 
                                 </tr>
@@ -2985,6 +3226,277 @@ public BtnApproveHR1Request = async () => {
                   </div>
                 </PivotItem>
                 {/* new code added end  */}
+
+                {/* new code added for tabing */}
+                {/* <PivotItem headerText="Tag Approver Dashboard" itemKey="HR2" hidden={!this.state.ShowHR2Tab} className="tab-box"  > */}
+                <PivotItem headerText="Tag Approver Dashboard" itemKey="TagApprover"  hidden={!this.state.ShowTagApproverTab} className="tab-box"  >
+
+                  <div className="row">
+                    <div className={`${styles.tabnav} col-md-2`}>
+                      <button
+                        className={`tablink ${this.state.activeTagApproverTab === 'Pending' ? 'active' : ''}`}
+                        onClick={() => this.openTagApproverInnerTab('Pending')}
+                      >
+                        Pending
+                      </button>
+                      <button
+                        className={`tablink ${this.state.activeTagApproverTab === 'Approved' ? 'active' : ''}`}
+                        onClick={() => this.openTagApproverInnerTab('Approved')}
+                      >
+                        Approved
+                      </button>
+                      <button
+                        className={`tablink ${this.state.activeTagApproverTab === 'Rejected' ? 'active' : ''}`}
+                        onClick={() => this.openTagApproverInnerTab('Rejected')}
+                      >
+                        Rejected
+                      </button>
+                    </div>
+
+                    <div className="col-md-10 panelbodybox">
+                      {/* PENDING TAB */}
+                      <div className={`tabcontent ${this.state.activeTagApproverTab === 'Pending' ? 'active' : ''}`} id="Pending">
+                        <div className="col-md-5 plr-5">
+                          <div className="row">
+                            <div className="col-md-4  pl-0" style={{ paddingTop: '6px' }}>
+                              <Label className="control-Label font-weight-bold" style={{ display: 'inline-block' }}>Employee Type </Label>
+                            </div>
+                            <div className="col-md-8">
+                              <Dropdown
+                                placeHolder="Select Employee Type"
+                                options={[
+                                  { key: "ALL", text: "ALL" },
+                                  { key: "PERMANENT", text: "PERMANENT" },
+                                  { key: "RETIRED", text: "RETIRED" },
+                                ]}
+                                selectedKey={this.state.DependentType}
+                                onChanged={this.handleDropdownChangeDashTagApproverPending}
+                                className="dropdown-style"
+                              />
+                            </div>
+
+                          </div>
+                        </div>
+
+                        <div className="col-md-3" style={{ paddingTop: '6px' }}>
+
+                          {/* <Dropdown
+            placeHolder="Select Dependent"
+            // disabled={true}
+            options={[{ key: 'ALL', text: 'ALL' },{ key: 'PERMANENT', text: 'PERMANENT' }, { key: 'RETIRED', text: 'RETIRED' }]}
+            onChanged={(e, option) => this.setState({ DependentType: e.key })}
+            className="dropdown-style"
+          /> */}
+
+
+
+
+
+                        </div>
+                        <table className="table ">
+                          <tr>
+                            <th>View</th>
+                            <th>Action</th>
+                            <th>CHS ID</th>
+                            <th>EmployeeID</th>
+                            <th>EmployeeName</th>
+                            <th>Employee Type</th>
+                            <th>Date of Birth</th>
+                            <th>Dependent Type</th>
+                            <th>Claimed Amount</th>
+                            <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+                            <th>Status</th>
+                            {/* <th>View Doc.</th> */}
+
+                          </tr>
+                          {
+                            this.state.TagApproverPendingDashboard.length > 0 ? this.state.TagApproverPendingDashboard.map((items) => {
+                              return (
+                                <tr>
+                                  <td><Icon iconName='View' onClick={() => this.getHR2ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td><Icon iconName='CheckMark' onClick={() => this.getHR2Approver(items)} className={styles.iconcolor} title='Approver'></Icon></td>
+                                  <td>{items.Title}</td>
+                                  <td>{items.EmployeeID}</td>
+                                  <td>{items.EmployeeName}</td>
+                                  <td>{items.EmployeeType}</td>
+                                  <td>{moment(items.DateofBirth).format("DD/MM/YYYY")}</td>
+                                  <td>{items.DependentType}</td>
+                                  <td>{items.AmountClaimed}</td>
+                                  <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
+
+                                  <td>{items.Status}</td>
+
+                                </tr>
+                              )
+                            })
+                              : ""
+                          }
+                        </table>
+                      </div>
+
+                      {/* APPROVED TAB */}
+                      <div className={` tabcontent ${this.state.activeTagApproverTab === 'Approved' ? 'active' : ''}`} id="Approved">
+                        <div className="col-md-5 plr-5">
+                          <div className="row">
+                            <div className="col-md-4  pl-0" style={{ paddingTop: '6px' }}>
+                              <Label className="control-Label font-weight-bold" style={{ display: 'inline-block' }}>Employee Type </Label>
+                            </div>
+                            <div className="col-md-8">
+                              <Dropdown
+                                placeHolder="Select Employee Type"
+                                options={[
+                                  { key: "ALL", text: "ALL" },
+                                  { key: "PERMANENT", text: "PERMANENT" },
+                                  { key: "RETIRED", text: "RETIRED" },
+                                ]}
+                                selectedKey={this.state.DependentType}
+                                onChanged={this.handleDropdownChangeDashTagApproverApproved}
+                                className="dropdown-style"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        {/* <div className="col-md-3"  style={{paddingTop:'6px'}}>
+          <Label className="control-Label font-weight-bold">Employee Type </Label>
+
+
+          <Dropdown
+            placeHolder="Select Employee Type"
+            options={[
+              { key: "ALL", text: "ALL" },
+              { key: "PERMANENT", text: "PERMANENT" },
+              { key: "RETIRED", text: "RETIRED" },
+            ]}
+            selectedKey={this.state.DependentType}
+            onChanged={this.handleDropdownChangeDashHR2Approved}
+            className="dropdown-style"
+          />
+
+        </div> */}
+
+
+
+
+                        <table className="table ">
+                          <tr>
+                            <th>View</th>
+                            <th>CHS ID</th>
+                            <th>EmployeeID</th>
+                            <th>EmployeeName</th>
+                            <th>Employee Type</th>
+                            <th>Date of Birth</th>
+                            <th>Dependent Type</th>
+                            <th>Claimed Amount</th>
+                            <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+                            <th>Status</th>
+                            {/* <th>View Doc.</th> */}
+
+                          </tr>
+                          {
+                            this.state.TagApproverApprDashboard.length > 0 ? this.state.TagApproverApprDashboard.map((items) => {
+                              return (
+                                <tr>
+                                  <td><Icon iconName='View' onClick={() => this.getHR2ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td>{items.Title}</td>
+                                  <td>{items.EmployeeID}</td>
+                                  <td>{items.EmployeeName}</td>
+                                  <td>{items.EmployeeType}</td>
+                                  <td>{moment(items.DateofBirth).format("DD/MM/YYYY")}</td>
+                                  <td>{items.DependentType}</td>
+                                  <td>{items.AmountClaimed}</td>
+                                  <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
+                                  <td>{items.Status}</td>
+
+                                </tr>
+                              )
+                            })
+                              : ""
+                          }
+                        </table>
+                      </div>
+
+                      {/* REJECTED TAB */}
+                      <div className={`tabcontent ${this.state.activeTagApproverTab === 'Rejected' ? 'active' : ''}`} id="Rejected">
+                        <div className="col-md-5 plr-5">
+                          <div className='row'>
+                            <div className="col-md-4  pl-0" style={{ paddingTop: '6px' }}>
+                              <Label className="control-Label font-weight-bold" style={{ display: 'inline-block' }}>Employee Type </Label>
+                            </div>
+                            <div className="col-md-8">
+                              <Dropdown
+                                placeHolder="Select Employee Type"
+                                options={[
+                                  { key: "ALL", text: "ALL" },
+                                  { key: "PERMANENT", text: "PERMANENT" },
+                                  { key: "RETIRED", text: "RETIRED" },
+                                ]}
+                                selectedKey={this.state.DependentType}
+                                onChanged={this.handleDropdownChangeDashTagApproverRejected}
+                                className="dropdown-style"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <table className="table ">
+                          <tr>
+                            <th>View</th>
+                            <th>CHS ID</th>
+                            <th>EmployeeID</th>
+                            <th>EmployeeName</th>
+                            <th>Employee Type</th>
+                            <th>Date of Birth</th>
+                            <th>Dependent Type</th>
+                            <th>Claimed Amount</th>
+                            <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+
+                            <th>Status</th>
+                            {/* <th>View Doc.</th> */}
+
+                          </tr>
+                          {
+                            this.state.TagApproverRejectDashboard.length > 0 ? this.state.TagApproverRejectDashboard.map((items) => {
+                              return (
+                                <tr>
+                                  <td><Icon iconName='View' onClick={() => this.getHR2ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td>{items.ID}</td>
+                                  <td>{items.EmployeeID}</td>
+                                  <td>{items.EmployeeName}</td>
+                                  <td>{items.EmployeeType}</td>
+                                  <td>{moment(items.DateofBirth).format("DD/MM/YYYY")}</td>
+                                  <td>{items.DependentType}</td>
+                                  <td>{items.AmountClaimed}</td>
+                                  <td>{items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+
+                                  <td>{items.Status}</td>
+                                  {/* {
+                    items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
+                      items.AttachmentFiles.map((files) => (
+                        <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
+                      ))
+                    ) : (
+                      <td>No Attachments</td>
+                    )
+                  } */}
+                                </tr>
+                              )
+                            })
+                              : ""
+                          }
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </PivotItem>
+                {/* new code added end  */}
               </Pivot>
             </div>
           </div>
@@ -3005,16 +3517,16 @@ public BtnApproveHR1Request = async () => {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
-              <div className="row form-group" >
+                <div className="row form-group" >
 
-              <div className="col-sm-2" >
+                  <div className="col-sm-2" >
                     <Label className="control-Label font-weight-bold">Financial Year:
-                     </Label>
+                    </Label>
                   </div>
                   <div className="col-sm-6" >
-                  {this.state.CurrentFinancialYear}
+                    {this.state.CurrentFinancialYear}
                   </div>
-                  </div>
+                </div>
                 <div className="row form-group" hidden={(!this.state.ShowHR1Tab) && (!this.state.ShowHR2Tab)} >
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">On behalf of:</Label>
@@ -3046,7 +3558,7 @@ public BtnApproveHR1Request = async () => {
 
                   {/* //    CurrentFinancialYear=  await this.getFinancialYear() */}
 
-                
+
 
                   <div className="col-sm-2" hidden={!this.state.showhideEmployeeNameLab}>
                     <Label className="control-Label font-weight-bold">Employee Name</Label>
@@ -3323,17 +3835,17 @@ public BtnApproveHR1Request = async () => {
             <div className="panel panel-default">
               <div className='panel-body'>
 
-              <div className="row form-group">
+                <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">Finacial Year:</Label>
                   </div>
                   <div className="col-sm-6">
                     <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
                   </div>
-                  </div>
+                </div>
 
-                  
-                  
+
+
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -3532,14 +4044,14 @@ public BtnApproveHR1Request = async () => {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
-              <div className="row form-group">
+                <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">Finacial Year:</Label>
                   </div>
                   <div className="col-sm-6">
                     <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
                   </div>
-                  </div>
+                </div>
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -3771,14 +4283,14 @@ public BtnApproveHR1Request = async () => {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
-              <div className="row form-group">
+                <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">Finacial Year:</Label>
                   </div>
                   <div className="col-sm-6">
                     <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
                   </div>
-                  </div>
+                </div>
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -3996,14 +4508,14 @@ public BtnApproveHR1Request = async () => {
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
-              <div className="row form-group">
+                <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">Finacial Year:</Label>
                   </div>
                   <div className="col-sm-6">
                     <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
                   </div>
-                  </div>
+                </div>
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>

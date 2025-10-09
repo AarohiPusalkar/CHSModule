@@ -179,6 +179,10 @@ width: 181px;
     max-width: 100% !important;
   }
 
+  div[role="banner"] {
+    display: none !important;
+  }
+  
   #pageHeader {
 
     display: none !important;
@@ -191,6 +195,7 @@ width: 181px;
 div[data-automation-id="pageHeader"] {
   display: none !important;
 }
+
 
 div[class="ms-compositeHeader-mainLayout"] {
   display: none !important;
