@@ -608,10 +608,10 @@ export default function EmployeeOps() {
         let FinalStatus = "Pending";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name,Author/Id"
-            , "AttachmentFiles,HR2ApproverName,Author"
+            , "*,Attachments,AttachmentFiles,TagApproverName/Name,HR2ApproverName/Name,Author/Id"
+            , "AttachmentFiles,HR2ApproverName,Author,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Id ne '${currentUser.Id}'  and HR2ApproverName/Name ne '${currentUser.LoginName}' `
+            , `HR1Response eq '${HR1Status}' and TagApproverName/Name ne '${currentUser.LoginName}' and Status eq '${FinalStatus}' and Author/Id ne '${currentUser.Id}'  and HR2ApproverName/Name ne '${currentUser.LoginName}' `
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -688,12 +688,12 @@ export default function EmployeeOps() {
         let Rejected = "Rejected"
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,TagApproverName/Name,HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `HR1Response eq '${status}' and HR2ApproverName/Name ne '${currentUser.LoginName}'`
             // , `HR1Response eq '${status}' and (Status eq '${FinalStatus}' or Status ne '${Rejected}')`
-            , `HR1Response eq '${status}' and  HR1ApproverName/Name eq '${currentUser.LoginName}' and (Status eq '${FinalStatus}' or Status ne '${Rejected}')`
+            , `HR1Response eq '${status}' and TagApproverName/Name ne '${currentUser.LoginName}' and  HR1ApproverName/Name eq '${currentUser.LoginName}' and (Status eq '${FinalStatus}' or Status ne '${Rejected}')`
 
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
@@ -769,10 +769,10 @@ export default function EmployeeOps() {
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         let status = "Rejected";
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR2ApproverName/Name,HR2ApproverName/Name"
-            , "AttachmentFiles,HR2ApproverName,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,TagApproverName/Name,HR2ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR2ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}' and TagApproverName/Name ne '${currentUser.LoginName}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -845,14 +845,16 @@ export default function EmployeeOps() {
         //  const emplinfo = await getEmployeeMaster(props);
         let HR2Status = "Pending with HR2";
         let HR1Status = "Approved by HR1";
+        let TagStatus = "Pending with TagApprover";
+
         let FinalStatus = "Pending";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,Author/Name"
-            , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,TagApproverName/Name,HR1ApproverName/Name,HR2ApproverName/Name,Author/Name"
+            , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `HR2Response eq '${status}'`
-            , `HR2Response eq '${HR2Status}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
+            , `HR2Response eq '${HR2Status}' and TagApproverResponse eq '${TagStatus}' and TagApproverName/Name ne '${currentUser.LoginName}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -923,14 +925,16 @@ export default function EmployeeOps() {
     };
     const HR2getApproveApprovedDashboard = async (props: IChsModuleProps): Promise<ICHSRequest[]> => {
         //  const emplinfo = await getEmployeeMaster(props);
-        let status = "Approved by HR2";
-        let FinalStatus = "Approved";
+        let HR2Status = "Approved by HR2";
+        // let FinalStatus = "Approved";
+        let FinalStatus = "Pending";
+
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles, HR1ApproverName/Name,HR2ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,TagApproverName/Name, HR1ApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${FinalStatus}' and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
+            , `Status eq '${FinalStatus}' and Author/Id ne '${currentUser.Id}' and TagApproverName/Name ne '${currentUser.LoginName}' and HR2Response eq '${HR2Status}'and HR2ApproverName/Name eq  '${currentUser.LoginName}' and HR1ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -1004,10 +1008,10 @@ export default function EmployeeOps() {
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         let status = "Rejected";
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,TagApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}'   and HR1ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}' and TagApproverName/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -1080,18 +1084,18 @@ export default function EmployeeOps() {
 
     const TagApprovergetApproveDashboard = async (props: IChsModuleProps): Promise<ICHSRequest[]> => {
         //  const emplinfo = await getEmployeeMaster(props);
-        let HR2Status = "Approved with HR2";
+        let HR2Status = "Approved by HR2";
         let HR1Status = "Approved by HR1";
         let TagApproverStatus = "Pending with TagApprover";
 
         let FinalStatus = "Pending";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,Author/Name"
-            , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName"
+            , "*,TagApproverResponse,Status,Attachments,AttachmentFiles,TagApproverName/Name,HR1ApproverName/Name,HR2ApproverName/Name,Author/Name"
+            , "AttachmentFiles,HR1ApproverName,Author,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `HR2Response eq '${status}'`
-            , `HR2Response eq '${HR2Status}' and TagApproverResponse eq '${TagApproverStatus}' and HR1Response eq '${HR1Status}' and TagApproverResponse eq '${TagApproverStatus}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName} and HR2ApproverName/Name ne  '${currentUser.LoginName}'`
+            , `HR2Response eq '${HR2Status}'  and TagApproverResponse eq '${TagApproverStatus}' and HR1Response eq '${HR1Status}' and Status eq '${FinalStatus}' and Author/Name ne '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}' and HR2ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -1166,10 +1170,10 @@ export default function EmployeeOps() {
         let FinalStatus = "Approved";
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles, HR1ApproverName/Name,HR2ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles, HR1ApproverName/Name,TagApproverName/Name,HR2ApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${FinalStatus}' and TagApproverResponse eq '${TagApproverResponse}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}' and HR2ApproverName/Name ne  '${currentUser.LoginName}'`
+            , `Status eq '${FinalStatus}' and TagApproverResponse eq '${TagApproverResponse}'and TagApproverName/Name eq '${currentUser.LoginName}'  and HR1ApproverName/Name ne  '${currentUser.LoginName}' and HR2ApproverName/Name ne  '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {
@@ -1243,10 +1247,10 @@ export default function EmployeeOps() {
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         let status = "Rejected";
         return await (await spCrudOps).getData("HealthCheckupService"
-            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name"
-            , "AttachmentFiles,HR1ApproverName,HR2ApproverName"
+            , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,TagApproverName/Name"
+            , "AttachmentFiles,HR1ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
-            , `Status eq '${status}'   and HR1ApproverName/Name ne '${currentUser.LoginName}' and HR2ApproverName/Name ne '${currentUser.LoginName}'`
+            , `Status eq '${status}'and TagApproverName/Name eq '${currentUser.LoginName}'  and HR1ApproverName/Name ne '${currentUser.LoginName}' and HR2ApproverName/Name ne '${currentUser.LoginName}'`
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
                 let brr: Array<ICHSRequest> = new Array<ICHSRequest>();
                 UserPending.sort((a, b) => b.Id - a.Id).map(item => {

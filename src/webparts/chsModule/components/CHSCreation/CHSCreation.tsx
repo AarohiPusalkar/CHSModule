@@ -947,6 +947,17 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         });
         break;
+
+        case "ExpenseDetails.TagApproverRemarks":
+          this.setState({
+            ExpenseDetails: {
+              ...this.state.ExpenseDetails,
+              TagApproverRemarks: '' + value
+            }
+          });
+          break;
+
+        
       case "ExpenseDetails.FinalAmount":
         this.setState({
           ExpenseDetails: {
@@ -1791,8 +1802,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       return req;
     });
   };
-
-  public BtnApproveTagApprovedRequest = async () => {
+  public BtnApproveTagApproverRequest = async () => {
     this.setState({ isApproving: true });
     // if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.EligibilityLimit) {
     //   alert('Final Claim Amount should be less than Eligible Limit! ');
@@ -2100,6 +2110,29 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       dependentitems: ApproverViewReqItems.DependentClaimDetails
     })
   }
+
+  public getTagApprover = async (Items) => {
+    console.log(Items);
+    const ApproverViewReqItems = Items;
+    var NewTotal = 0;
+    this.setState({
+      CHSApproverView: ApproverViewReqItems,
+      isDialogTagApprover: true,
+      dependentitems: ApproverViewReqItems.DependentClaimDetails
+    })
+  }
+  public getTagApproverView = async (Items) => {
+    console.log(Items);
+    const ApproverViewReqItems = Items;
+    var NewTotal = 0;
+    this.setState({
+      CHSApproverView: ApproverViewReqItems,
+      isDialogViewTagApprover: true,
+      dependentitems: ApproverViewReqItems.DependentClaimDetails
+    })
+  }
+
+  
 
   handleAdd = () => {
     const hasSelfDependent = this.state.dependentitems.some(
@@ -3314,8 +3347,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             this.state.TagApproverPendingDashboard.length > 0 ? this.state.TagApproverPendingDashboard.map((items) => {
                               return (
                                 <tr>
-                                  <td><Icon iconName='View' onClick={() => this.getHR2ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
-                                  <td><Icon iconName='CheckMark' onClick={() => this.getHR2Approver(items)} className={styles.iconcolor} title='Approver'></Icon></td>
+                                  <td><Icon iconName='View' onClick={() => this.getTagApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td><Icon iconName='CheckMark' onClick={() => this.getTagApprover(items)} className={styles.iconcolor} title='Approver'></Icon></td>
                                   <td>{items.Title}</td>
                                   <td>{items.EmployeeID}</td>
                                   <td>{items.EmployeeName}</td>
@@ -3400,7 +3433,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             this.state.TagApproverApprDashboard.length > 0 ? this.state.TagApproverApprDashboard.map((items) => {
                               return (
                                 <tr>
-                                  <td><Icon iconName='View' onClick={() => this.getHR2ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td><Icon iconName='View' onClick={() => this.getTagApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
                                   <td>{items.Title}</td>
                                   <td>{items.EmployeeID}</td>
                                   <td>{items.EmployeeName}</td>
@@ -3465,7 +3498,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             this.state.TagApproverRejectDashboard.length > 0 ? this.state.TagApproverRejectDashboard.map((items) => {
                               return (
                                 <tr>
-                                  <td><Icon iconName='View' onClick={() => this.getHR2ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td><Icon iconName='View' onClick={() => this.getTagApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
                                   <td>{items.ID}</td>
                                   <td>{items.EmployeeID}</td>
                                   <td>{items.EmployeeName}</td>
@@ -4497,6 +4530,490 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         </Dialog>
         <Dialog
           hidden={!this.state.isDialogViewHR2}
+          onDismiss={this.closeDialog}
+          dialogContentProps={{
+            type: DialogType.normal,
+            title: 'CHS View Form',
+            closeButtonAriaLabel: 'Close',
+          }}
+          containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
+        >
+          <div className="card card-body">
+            <div className="panel panel-default">
+              <div className='panel-body'>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Finacial Year:</Label>
+                  </div>
+                  <div className="col-sm-6">
+                    <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">CHS Request No</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label">{this.state.CHSApproverView.Title}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Employee ID</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label">{this.state.CHSApproverView.EmployeeID}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Employee Name</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.EmployeeName}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Age</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Age}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Date of Birth </Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{moment(this.state.CHSApproverView.DateofBirth).format("DD/MM/YYYY")}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Scale</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Scale}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Employee Type </Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.EmployeeType}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Designation</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Designation}</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card card-body">
+            <div className="panel panel-default">
+              <div className='panel-body'>
+                <div className="row form-group">
+                </div>
+                <div className="row form-group" hidden={this.state.CHSApproverView.DependentType == 'Self'} >
+                  <div className="col-sm-4" >
+                    <Label className="control-Label font-weight-bold">Is Spouse an Exim Employee<span>*</span></Label>
+                  </div>
+                  <div className='col-md-1'>
+                    <Checkbox
+                      label="Yes"
+                      disabled
+                      checked={this.state.CHSApproverView.IsSpouseEximMember == "Yes"}
+                      onChange={this.handleCheckboxChange("Yes")}
+                    />
+                  </div>
+                  <div className='col-md-1'>
+                    <Checkbox
+                      label="No"
+                      disabled
+                      checked={this.state.CHSApproverView.IsSpouseEximMember == "No"}
+                      onChange={this.handleCheckboxChange("No")}
+                    />
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">CHS Limit</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
+                  </div>
+                </div>
+                {/* Table of Added Dependents */}
+                {this.state.dependentitems.length > 0 && (
+                  <div className="row form-group">
+                    <div className="col-sm-12">
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Dependent Type</th>
+                            <th>Amount Claimed</th>
+                            <th>CHS Eligiblity Limit</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {this.state.dependentitems.map((item, index) => (
+                            <tr key={index}>
+                              <td>{item.DependentType}</td>
+                              <td>{item.AmountClaimed}</td>
+                              <td>{item.ActualClaimAmountLable}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={1}><strong>Total</strong></td>
+                            <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
+                            <td colSpan={1}></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label "> {this.state.CHSApproverView.FinalAmount === null ||
+                      this.state.CHSApproverView.FinalAmount === undefined ||
+                      this.state.CHSApproverView.FinalAmount === ''
+                      ? 0
+                      : this.state.CHSApproverView.FinalAmount}</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label "> {this.state.CHSApproverView.HR1Remark === null ||
+                      this.state.CHSApproverView.HR1Remark === undefined ||
+                      this.state.CHSApproverView.HR1Remark === ''
+                      ? 'NA'
+                      : this.state.CHSApproverView.HR1Remark}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Final  Approved Amount</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.HRApprovedAmount === null ||
+                        this.state.CHSApproverView.HRApprovedAmount === undefined ||
+                        this.state.CHSApproverView.HRApprovedAmount === ''
+                        ? 0
+                        : this.state.CHSApproverView.HRApprovedAmount}</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                    <Label className="control-Label font-weight-bold">HR2 Remarks</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.HR2Remark === null ||
+                        this.state.CHSApproverView.HR2Remark === undefined ||
+                        this.state.CHSApproverView.HR2Remark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.HR2Remark}
+                    </Label>
+                  </div>
+                </div>
+
+
+
+              </div>
+            </div>
+            <div className="panel panel-default">
+              <div className='panel-body'>
+                <div className="row form-group">
+                  <div className='col-sm-2'>
+                    <label className="control-Label font-weight-bold">Attachment</label>
+                  </div>
+                  <div className='col-sm-8'>
+                    {
+                      this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
+                        this.state.CHSApproverView.AttachmentFiles.map((files) => (
+                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
+                        ))
+                      ) : (
+                        <div>No Attachments</div>
+                      )
+                    }
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
+                    <Label className="control-Label font-weight-bold">HR Remarks For Retired Employee</Label>
+                  </div>
+                  <div className="col-sm-8" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.HRRemarkForRetired === null ||
+                        this.state.CHSApproverView.HRRemarkForRetired === undefined ||
+                        this.state.CHSApproverView.HRRemarkForRetired === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.HRRemarkForRetired}
+                    </Label>
+                  </div>
+                </div>
+              </div></div>
+          </div>
+          <div className='text-center'>
+            <PrimaryButton onClick={() => this.closeDialog()} >Close</PrimaryButton>
+          </div>
+        </Dialog>
+
+        <Dialog
+          hidden={!this.state.isDialogTagApprover}
+          onDismiss={this.closeDialog}
+          dialogContentProps={{
+            type: DialogType.normal,
+            title: 'CHS Approver Form',
+            closeButtonAriaLabel: 'Close',
+          }}
+          containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
+        >
+          <div className="card card-body">
+            <div className="panel panel-default">
+              <div className='panel-body'>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Finacial Year:</Label>
+                  </div>
+                  <div className="col-sm-6">
+                    <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">CHS Request No</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label">{this.state.CHSApproverView.Title}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Employee ID</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label">{this.state.CHSApproverView.EmployeeID}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Employee Name</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.EmployeeName}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Age</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Age}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Date of Birth </Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{moment(this.state.CHSApproverView.DateofBirth).format("DD/MM/YYYY")}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Scale</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Scale}</Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Employee Type </Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.EmployeeType}</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Designation</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Designation}</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card card-body">
+            <div className="panel panel-default">
+              <div className='panel-body'>
+                <div className="row form-group">
+                </div>
+                <div className="row form-group" hidden={this.state.CHSApproverView.DependentType == 'Self'} >
+                  <div className="col-sm-4" >
+                    <Label className="control-Label font-weight-bold">Is Spouse an Exim Employee<span>*</span></Label>
+                  </div>
+                  <div className='col-md-1'>
+                    <Checkbox
+                      label="Yes"
+                      disabled
+                      checked={this.state.CHSApproverView.IsSpouseEximMember == "Yes"}
+                      onChange={this.handleCheckboxChange("Yes")}
+                    />
+                  </div>
+                  <div className='col-md-1'>
+                    <Checkbox
+                      label="No"
+                      disabled
+                      checked={this.state.CHSApproverView.IsSpouseEximMember == "No"}
+                      onChange={this.handleCheckboxChange("No")}
+                    />
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">CHS Limit</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
+                  </div>
+                </div>
+                {/* Table of Added Dependents */}
+                {this.state.dependentitems.length > 0 && (
+                  <div className="row form-group">
+                    <div className="col-sm-12">
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Dependent Type</th>
+                            <th>Amount Claimed</th>
+                            <th>CHS Eligiblity Limit</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {this.state.dependentitems.map((item, index) => (
+                            <tr key={index}>
+                              <td>{item.DependentType}</td>
+                              <td>{item.AmountClaimed}</td>
+                              <td>{item.ActualClaimAmountLable}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={1}><strong>Total</strong></td>
+                            <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
+                            <td colSpan={1}></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.FinalAmount === null ||
+                        this.state.CHSApproverView.FinalAmount === undefined ||
+                        this.state.CHSApproverView.FinalAmount === ''
+                        ? 0
+                        : this.state.CHSApproverView.FinalAmount}
+                    </Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                    <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.HR1Remark === null ||
+                        this.state.CHSApproverView.HR1Remark === undefined ||
+                        this.state.CHSApproverView.HR1Remark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.HR1Remark}
+                    </Label>
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2">
+                    <Label className="control-Label font-weight-bold">Final Approved Amount</Label>
+                  </div>
+                  <div className="col-sm-2">
+                    <Label className="control-Label">
+                      {this.state.CHSApproverView.HRApprovedAmount === null ||
+                        this.state.CHSApproverView.HRApprovedAmount === undefined ||
+                        this.state.CHSApproverView.HRApprovedAmount === ''
+                        ? 0
+                        : this.state.CHSApproverView.HRApprovedAmount}
+                    </Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                    <Label className="control-Label font-weight-bold">HR2 Remarks</Label>
+                  </div>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.HR2Remark === null ||
+                        this.state.CHSApproverView.HR2Remark === undefined ||
+                        this.state.CHSApproverView.HR2Remark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.HR2Remark}
+                    </Label>
+                  </div>
+                </div>
+
+
+              </div>
+            </div>
+            <div className="panel panel-default">
+              <div className='panel-body'>
+                <div className="row form-group">
+                  <div className='col-sm-2'>
+                    <label className="control-Label font-weight-bold">Attachment</label>
+                  </div>
+                  <div className='col-sm-8'>
+                    {
+                      this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
+                        this.state.CHSApproverView.AttachmentFiles.map((files) => (
+                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
+                        ))
+                      ) : (
+                        <div>No Attachments</div>
+                      )
+                    }
+                  </div>
+                </div>
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
+                    <Label className="control-Label font-weight-bold">HR Remarks For Retired Employee</Label>
+                  </div>
+                  <div className="col-sm-8" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.HRRemarkForRetired === null ||
+                        this.state.CHSApproverView.HRRemarkForRetired === undefined ||
+                        this.state.CHSApproverView.HRRemarkForRetired === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.HRRemarkForRetired}
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-12" style={{ padding: 0 }}>
+              <Label className="control-Label font-weight-bold col-md-2">Remarks</Label>
+              <TextField type='text' className='col-md-8'
+                name="ExpenseDetails.TagApproverRemarks"
+                onChanged={(e: any) => this.handleInputChangeadd(event)}
+                onPaste={this.handleRemarksPaste}
+                onKeyPress={(e) => { if (/[<>&"'\/]/.test(e.key)) { e.preventDefault(); alert('Special characters like <, >, &, ", \', / are not allowed.'); } }}></TextField>
+            </div>
+          </div>
+          <div className='text-center'>
+            <PrimaryButton className={styles.custombtn + " " + "mr-2"} onClick={() => this.BtnApproveTagApproverRequest()} disabled={this.state.isApproving}>{this.state.isApproving ? <Spinner size={SpinnerSize.small} /> : "Approve"}</PrimaryButton>
+            <PrimaryButton className={styles.custombtn + " " + "mr-2"} onClick={() => this.BtnRejectRequest('TagApprover')} disabled={this.state.isRejecting}>{this.state.isRejecting ? <Spinner size={SpinnerSize.small} /> : "Reject"}</PrimaryButton>
+            <PrimaryButton onClick={() => this.closeDialog()} >Close</PrimaryButton>
+          </div>
+        </Dialog>
+        <Dialog
+          hidden={!this.state.isDialogViewTagApprover}
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
