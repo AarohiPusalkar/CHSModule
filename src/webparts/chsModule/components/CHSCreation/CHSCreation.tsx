@@ -140,6 +140,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       allDashboardDataTagApproverApproved: [],
 
+      TagApproverApproverRejectDashboard: [],
 
       allDashboardData2: [],
 
@@ -200,7 +201,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       activeHRTab: 'Pending',
       activeTagApproverTab: 'Pending',
 
-      
+
       activeHRdashTab: 'Pending',
       selectedOuterTab: '',
       CurrentFinancialYear: this.getFinancialYear(),
@@ -254,8 +255,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       const pivotTabParam = urlParams.get("ptab") || "User";
       const ishr1 = await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
       const ishr2 = await this.checkUserInGroupsForHR2TabNav(['HR2_Group'])
-      const isTagApprover = await this.checkUserInGroupsForHR2TabNav(['TagApprover'])
-
+      const isTagApprover = await this.checkUserInGroupsForTagTabNav(['TagApprover'])
 
 
 
@@ -591,48 +591,95 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     this.setState({ selectedOption });
     console.log(`Selected: ${selectedOption.label}`);
   }
-  public async checkUserInGroupsForHR2TabNav(groups: string[]): Promise<boolean> {
+  public async checkUserInGroupsForHR2TabNav(groupsToCheck: string[]): Promise<boolean> {
     try {
       const spCrudObj = await useSPCRUD();
       const userGroups = await spCrudObj.currentUserGroup(this.props);
 
       if (!userGroups || userGroups.length === 0) {
-        console.log("User is not part of any group.");
+        console.log(" User is not part of any SharePoint group.");
         return false;
       }
 
-      const isUserInGroup = userGroups.some(group => groups.indexOf(group.Title) > -1);
-      if (isUserInGroup) {
-        this.setState({ ShowHR2Tab: true });
-        return true;
-      }
+      // Normalize to lowercase for comparison
+      const userGroupTitles = userGroups.map((g) => g.Title.toLowerCase());
+      const targetGroups = groupsToCheck.map((g) => g.toLowerCase());
 
-      return false;
+      // 🔹 Match ANY of the target groups
+      const isUserInAnyGroup = targetGroups.some((target) =>
+        userGroupTitles.includes(target)
+      );
+
+      console.log(" Is user in HR groups?", isUserInAnyGroup);
+
+      // Optional: Set state if needed
+      this.setState({ ShowHR2Tab: isUserInAnyGroup });
+
+      return isUserInAnyGroup;
     } catch (error) {
-      console.error("Error checking user in groups:", error);
+      console.error(" Error checking user group membership:", error);
       return false;
     }
   }
 
-  public async checkUserInGroupsForHR1TabNav(groups: string[]): Promise<boolean> {
+  public async checkUserInGroupsForTagTabNav(groupsToCheck: string[]): Promise<boolean> {
     try {
       const spCrudObj = await useSPCRUD();
       const userGroups = await spCrudObj.currentUserGroup(this.props);
 
       if (!userGroups || userGroups.length === 0) {
-        console.log("User is not part of any group.");
+        console.log(" User is not part of any SharePoint group.");
         return false;
       }
 
-      const isUserInGroup = userGroups.some(group => groups.indexOf(group.Title) > -1);
-      if (isUserInGroup) {
-        this.setState({ ShowHR1Tab: true });
-        return true;
+      // Normalize to lowercase for comparison
+      const userGroupTitles = userGroups.map((g) => g.Title.toLowerCase());
+      const targetGroups = groupsToCheck.map((g) => g.toLowerCase());
+
+      // 🔹 Match ANY of the target groups
+      const isUserInAnyGroup = targetGroups.some((target) =>
+        userGroupTitles.includes(target)
+      );
+
+      console.log(" Is user in HR groups?", isUserInAnyGroup);
+
+      // Optional: Set state if needed
+      this.setState({ ShowTagApproverTab: isUserInAnyGroup });
+
+      return isUserInAnyGroup;
+    } catch (error) {
+      console.error(" Error checking user group membership:", error);
+      return false;
+    }
+  }
+
+  public async checkUserInGroupsForHR1TabNav(groupsToCheck: string[]): Promise<boolean> {
+    try {
+      const spCrudObj = await useSPCRUD();
+      const userGroups = await spCrudObj.currentUserGroup(this.props);
+
+      if (!userGroups || userGroups.length === 0) {
+        console.log(" User is not part of any SharePoint group.");
+        return false;
       }
 
-      return false;
+      // Normalize to lowercase for comparison
+      const userGroupTitles = userGroups.map((g) => g.Title.toLowerCase());
+      const targetGroups = groupsToCheck.map((g) => g.toLowerCase());
+
+      // 🔹 Match ANY of the target groups
+      const isUserInAnyGroup = targetGroups.some((target) =>
+        userGroupTitles.includes(target)
+      );
+
+      console.log(" Is user in HR groups?", isUserInAnyGroup);
+
+      // Optional: Set state if needed
+      this.setState({ ShowHR1Tab: isUserInAnyGroup });
+
+      return isUserInAnyGroup;
     } catch (error) {
-      console.error("Error checking user in groups:", error);
+      console.error(" Error checking user group membership:", error);
       return false;
     }
   }
@@ -910,16 +957,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           },
           AmountClaimed: value
         });
-        if (this.state.ActualClaimAmountLable != "") {
-          if (value > this.state.ActualClaimAmountLable) {
-            this.setState({
-              ExpenseDetailsAlert: true
-            });
-          }
-          else {
-            this.setState({
-              ExpenseDetailsAlert: false
-            });
+
+        if (this.state.DesignationTitle != "Managing Director (MD)" &&
+          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+          if (this.state.ActualClaimAmountLable != "") {
+            if (value > this.state.ActualClaimAmountLable) {
+              this.setState({
+                ExpenseDetailsAlert: true
+              });
+            }
+            else {
+              this.setState({
+                ExpenseDetailsAlert: false
+              });
+            }
           }
         }
         break;
@@ -948,16 +999,16 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         });
         break;
 
-        case "ExpenseDetails.TagApproverRemarks":
-          this.setState({
-            ExpenseDetails: {
-              ...this.state.ExpenseDetails,
-              TagApproverRemarks: '' + value
-            }
-          });
-          break;
+      case "ExpenseDetails.TagApproverRemarks":
+        this.setState({
+          ExpenseDetails: {
+            ...this.state.ExpenseDetails,
+            TagApproverRemarks: '' + value
+          }
+        });
+        break;
 
-        
+
       case "ExpenseDetails.FinalAmount":
         this.setState({
           ExpenseDetails: {
@@ -976,7 +1027,11 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         });
 
-        if (value > this.state.CHSApproverView.EligibilityLimit) {
+        //if (value > this.state.CHSApproverView.EligibilityLimit) {
+        if (value > this.state.CHSApproverView.AmountClaimed) {
+
+
+
           this.setState({
             ExpenseDetailsAlert: true
           });
@@ -1003,7 +1058,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
 
 
-        if (value > this.state.CHSApproverView.EligibilityLimit) {
+        // if (value > this.state.CHSApproverView.EligibilityLimit) {
+        if (value > this.state.CHSApproverView.AmountClaimed) {
+
+
           this.setState({
             ExpenseDetailsAlert: true
           });
@@ -1546,12 +1604,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       }
 
       const LIMIT = parseFloat(this.state.Limit) || 0;
-      if (LIMIT === 0) {
-        return this.fail("Please Map Limit!");
+      if (this.state.DesignationTitle != "Managing Director (MD)" &&
+        this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+        if (LIMIT === 0) {
+          return this.fail("Please Map Limit!");
+        }
       }
 
-      if (this.state.TotalAmountClaimed > LIMIT) {
-        return this.fail("Claim Amount should be less than CHS Limit!");
+      if (this.state.DesignationTitle != "Managing Director (MD)" &&
+        this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+        if (this.state.TotalAmountClaimed > LIMIT) {
+          return this.fail("Claim Amount should be less than CHS Limit!");
+        }
       }
 
       // Step 2: Check Existing Requests
@@ -1594,9 +1658,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       if (this.state.files && this.state.files.length) {
         await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-        alert("CHS Request Submitted Successfully!");
+        alert("Comprehensive Health Checkup Request Submitted Successfully!");
       } else {
-        alert("CHS Request Submitted without attachments.");
+        alert("Comprehensive Health Checkup Request Submitted without attachments.");
       }
 
       // Step 5: Reset UI
@@ -1611,7 +1675,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     } catch (err) {
       console.error("Submit error:", err);
       this.setState({ isSubmitting: false });
-      alert("An error occurred while submitting the request.");
+      alert("An error occurred while submitting the request." + err);
     }
   };
 
@@ -1632,8 +1696,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     let dashTab = "Pending";
     const selfItem = this.state.dependentitems.find((i) => i.DependentType === "Self");
     const spouseItem = this.state.dependentitems.find((i) => i.DependentType === "Spouse");
-    const actualEligibilityLimit = selfItem.ActualClaimAmountLable || spouseItem.ActualClaimAmountLable || 0;
-
+    ////const actualEligibilityLimit = selfItem.ActualClaimAmountLable || spouseItem.ActualClaimAmountLable || 0;
+    var actualEligibilityLimit = (selfItem && selfItem.ActualClaimAmountLable) ||
+      (spouseItem && spouseItem.ActualClaimAmountLable) || 0;
     const dob = this.state.DateofBirth; // "25-6-1956"
     const [day, month, year] = dob.split("-");
 
@@ -1667,7 +1732,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     // HR1 Flow
     if (this.state.ShowHR1Tab) {
       pivotTab = "HR1";
-      dashTab = "Approved";
+      dashTab = "Pending";
 
       if (this.state.OnBehalf === "Yes") {
         const hrApprovedAmount =
@@ -1692,7 +1757,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     // HR2 Flow
     if (this.state.ShowHR2Tab) {
       pivotTab = "HR2";
-      dashTab = "Approved";
+      dashTab = "Pending";
 
       if (this.state.OnBehalf === "Yes") {
         const hrApprovedAmount =
@@ -1714,7 +1779,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       }
     }
 
-       
+
 
     return { CHSRequestItem: item, pivotTab, dashTab };
   }
@@ -1733,10 +1798,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         return false;
       }
     }
-    if (this.state.ExpenseDetails.HR1FinalAmount > this.state.CHSApproverView.EligibilityLimit) {
-      alert('Final Claim Amount should be less than Eligible Limit! ');
-      this.setState({ isApproving: false });
-      return false;
+
+    if (this.state.CHSApproverView.Designation != "Managing Director (MD)" &&
+      this.state.CHSApproverView.Designation != "Deputy Managing Director (DMD)") {
+      if (this.state.ExpenseDetails.HR1FinalAmount > this.state.CHSApproverView.AmountClaimed) {
+        alert('Final Claim Amount should be less than Eligible Limit! ');
+        this.setState({ isApproving: false });
+        return false;
+      }
     }
     const spCrudObj = await useSPCRUD();
 
@@ -1752,7 +1821,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       FinalAmount: +this.state.ExpenseDetails.HR1FinalAmount
     };
     return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
-      alert('CHS Request Approved Successfully!');
+      alert('Comprehensive Health Checkup Request Approved Successfully!');
       this.setState({ isApproving: false });
       this.closeDialog();
       window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Approved&ptab=HR1`;  // Update the URL path to your dashboard route
@@ -1762,10 +1831,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   };
   public BtnApproveHR2Request = async () => {
     this.setState({ isApproving: true });
-    if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.EligibilityLimit) {
-      alert('Final Claim Amount should be less than Eligible Limit! ');
-      this.setState({ isApproving: false });
-      return false;
+
+    if (this.state.CHSApproverView.Designation != "Managing Director (MD)" &&
+      this.state.CHSApproverView.Designation != "Deputy Managing Director (DMD)") {
+      if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.AmountClaimed) {
+        alert('Final Claim Amount should be less than Eligible Limit! ');
+        this.setState({ isApproving: false });
+        return false;
+      }
     }
     if (!this.state.ExpenseDetails) {
       alert('Please mention Remarks ');
@@ -1793,7 +1866,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       HR2Remark: this.state.ExpenseDetails.HR2Remarks
     };
     return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
-      alert('CHS Request Approved Successfully!');
+      alert('Comprehensive Health Checkup Request Approved Successfully!');
       this.setState({ isApproving: false });
       this.closeDialog()
       //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
@@ -1833,9 +1906,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       TagApproverRemark: this.state.ExpenseDetails.TagApproverRemarks
     };
     return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
-      alert('CHS Request Approved Successfully!');
+      alert('Comprehensive Health Checkup Request Approved Successfully!');
       this.setState({ isApproving: false });
-      this.closeDialog()
+      this.closeDialog();
       //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
       window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Approved&ptab=HR2`;  // Update the URL path to your dashboard route
 
@@ -1869,7 +1942,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       };
 
       return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
-        alert('CHS Request Rejected Successfully!');
+        alert('Comprehensive Health Checkup Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
         //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
@@ -1906,7 +1979,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         HR2Remark: this.state.ExpenseDetails.HR2Remarks
       };
       return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
-        alert('CHS Request Rejected Successfully!');
+        alert('Comprehensive Health Checkup Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
         //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
@@ -1934,7 +2007,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         TagApproverRemark: this.state.ExpenseDetails.TagApproverRemarks
       };
       return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
-        alert('CHS Request Rejected Successfully!');
+        alert('Comprehensive Health Checkup Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
         //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
@@ -2132,7 +2205,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     })
   }
 
-  
+
 
   handleAdd = () => {
     const hasSelfDependent = this.state.dependentitems.some(
@@ -2171,14 +2244,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       if (DependentType && AmountClaimed > 0) {
 
         const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-        if (LIMIT == 0) {
-          alert('Please Map Limit !');
-          this.setState({
-            DependentType: "",
-            AmountClaimed: "",
-            ActualClaimAmountLable: ""
-          });
-          return false;
+
+        if (this.state.DesignationTitle != "Managing Director (MD)" &&
+          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+          if (LIMIT == 0) {
+            alert('Please Map Limit !');
+            this.setState({
+              DependentType: "",
+              AmountClaimed: "",
+              ActualClaimAmountLable: ""
+            });
+            return false;
+          }
         }
 
         const totalClaimedInDependentItems = this.state.dependentitems.reduce((sum, item) => {
@@ -2186,14 +2263,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         }, 0);
 
         let totalamountclaimed = parseFloat(totalClaimedInDependentItems) + parseFloat(AmountClaimed)
-        if (totalamountclaimed > LIMIT) {
-          alert('Total Claim Amount should not exceed CHS Limit! ');
-          this.setState({
-            DependentType: "",
-            AmountClaimed: "",
-            ActualClaimAmountLable: ""
-          });
-          return false;
+
+        if (this.state.DesignationTitle != "Managing Director (MD)" &&
+          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+          if (totalamountclaimed > LIMIT) {
+            alert('Total Claim Amount should not exceed CHS Limit! ');
+            this.setState({
+              DependentType: "",
+              AmountClaimed: "",
+              ActualClaimAmountLable: ""
+            });
+            return false;
+          }
         }
 
 
@@ -2492,6 +2573,13 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
     const showReportButton = this.state.ShowHR1Tab || this.state.ShowHR2Tab;
 
+    const isMDorDMD =
+      this.state.DesignationTitle === "Managing Director (MD)" ||
+      this.state.DesignationTitle === "Deputy Managing Director (DMD)";
+
+    const isMDorDMDApprover =
+      this.state.CHSApproverView.Designation === "Managing Director (MD)" ||
+      this.state.CHSApproverView.Designation === "Deputy Managing Director (DMD)";
     return (
 
       <div className={styles.pettyCash} >
@@ -3262,7 +3350,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
                 {/* new code added for tabing */}
                 {/* <PivotItem headerText="Tag Approver Dashboard" itemKey="HR2" hidden={!this.state.ShowHR2Tab} className="tab-box"  > */}
-                <PivotItem headerText="Tag Approver Dashboard" itemKey="TagApprover"  hidden={!this.state.ShowTagApproverTab} className="tab-box"  >
+                <PivotItem headerText="Tag Approver Dashboard" itemKey="TagApprover" hidden={!this.state.ShowTagApproverTab} className="tab-box"  >
 
                   <div className="row">
                     <div className={`${styles.tabnav} col-md-2`}>
@@ -3495,7 +3583,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
                           </tr>
                           {
-                            this.state.TagApproverRejectDashboard.length > 0 ? this.state.TagApproverRejectDashboard.map((items) => {
+                            this.state.TagApproverApproverRejectDashboard.length > 0 ? this.state.TagApproverApproverRejectDashboard.map((items) => {
+                              /// this.state.TagApproverRejectDashboard.length > 0 ? this.state.TagApproverRejectDashboard.map((items) => {
                               return (
                                 <tr>
                                   <td><Icon iconName='View' onClick={() => this.getTagApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
@@ -3539,7 +3628,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS Request',
+            title: 'Comprehensive Health Checkup Request',
             // subText:`Financial Year : ${this.state.CurrentFinancialYear}`,
             closeButtonAriaLabel: 'Close',
           }}
@@ -3681,11 +3770,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   <div className="col-sm-2">
                     <Label className="control-Label ">{this.state.Age}</Label>
                   </div>
-                  <div className="col-sm-2">
+
+                  <div className="col-sm-2" style={{ display: isMDorDMD ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
-                    <Label className="control-Label ">{this.state.Limit}</Label>
+                  <div className="col-sm-2 d-flex align-items-center justify-content-between"
+                    style={{ display: isMDorDMD ? "none" : "flex" }}>
+                    <Label className="control-Label ">
+                      {this.state.Limit}
+                    </Label>
                   </div>
 
                 </div>
@@ -3714,13 +3807,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       name="ExpenseDetails.Amount" value={this.state.AmountClaimed}
                       onChanged={(e: any) => this.handleInputChangeadd(event)}></TextField>
                   </div>
-                  <div className="col-sm-2">
-                    <Label className="control-Label font-weight-bold">CHS Eligiblity Limit</Label>
+                  <div
+                    className="col-sm-2" style={{ display: isMDorDMD ? "none" : "block" }}>
+                    <Label className="control-Label font-weight-bold">CHS Eligibility Limit</Label>
                   </div>
-                  <div className="col-sm-2 d-flex align-items-center justify-content-between">
-                    <Label className="control-Label ">{this.state.ActualClaimAmountLable}</Label>
-                    <PrimaryButton text="Add" onClick={this.handleAdd} />
+                  <div
+                    className="col-sm-2 d-flex align-items-center justify-content-between"
+                    style={{ display: isMDorDMD ? "none" : "flex" }}>
+                    <Label className="control-Label " style={{ display: isMDorDMD ? "none" : "block" }}>
+                      {this.state.ActualClaimAmountLable}
+                    </Label>
                   </div>
+                  <PrimaryButton text="Add" onClick={this.handleAdd} />
                 </div>
                 {/* Table of Added Dependents */}
                 {this.state.dependentitems.length > 0 && (
@@ -3731,7 +3829,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMD ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -3740,7 +3838,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMD ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                               <td>
                                 <button className="btn btn-danger btn-sm" onClick={() => this.handleDelete(index)}>
                                   Delete
@@ -3753,7 +3851,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.TotalAmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMD ? "none" : "table-cell" }}></td>
                             <td colSpan={1}></td>
                           </tr>
                         </tfoot>
@@ -3859,7 +3957,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS Approver',
+            title: 'Comprehensive Health Checkup Approver',
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -3963,10 +4061,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -3979,7 +4077,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -3987,7 +4085,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -3995,7 +4093,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4069,7 +4167,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS View Form',
+            title: 'Comprehensive Health Checkup View Form',
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -4169,10 +4267,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4185,7 +4283,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4193,7 +4291,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4201,7 +4299,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4308,7 +4406,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS Approver',
+            title: 'Comprehensive Health Checkup Approver',
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -4408,10 +4506,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4424,7 +4522,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4432,7 +4530,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4440,7 +4538,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4533,7 +4631,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS View Form',
+            title: 'Comprehensive Health Checkup View Form',
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -4633,10 +4731,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4649,7 +4747,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4657,7 +4755,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4665,7 +4763,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4768,7 +4866,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS Approver Form',
+            title: 'Comprehensive Health Checkup Approver Form',
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -4868,10 +4966,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4884,7 +4982,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4892,7 +4990,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4900,7 +4998,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
                           </tr>
                         </tfoot>
                       </table>
@@ -5017,7 +5115,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           onDismiss={this.closeDialog}
           dialogContentProps={{
             type: DialogType.normal,
-            title: 'CHS View Form',
+            title: 'Comprehensive Health Checkup View Form',
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -5117,10 +5215,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2">
+                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -5133,7 +5231,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th>CHS Eligiblity Limit</th>
+                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -5141,7 +5239,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -5149,7 +5247,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1}></td>
+                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
                           </tr>
                         </tfoot>
                       </table>
