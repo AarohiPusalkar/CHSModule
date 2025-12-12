@@ -38,24 +38,10 @@ import '../../assets/CHSCretaionstyle.scss';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
-
-const initialValues = {
-  NoteTypeId: 0,
-  GroupId: '',
-  FinancialYearId: "",
-  Subject: "",
-}
-const validate = yup.object().shape({
-  FinancialYearId: yup.number().required('Financial Year Value is required'),
-  Subject: yup.string().required('Subject is required'),
-});
-
 // let CurrentFinancialYear;
 export interface ISelectState {
   selectedOption?: string;
 }
-
-// const useHistory =  useHistory();
 
 const onbehalfoption: IDropdownOption[] = [
   { key: 'Yes', text: 'Yes' },
@@ -97,7 +83,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       ShowTagApproverTab: false,
 
       ShowHRTab: true,
-      ActualClaimAmountLable: "",
+      CalculatedCHSEligibilityAmountLabel: "",
       Currentuser: "",
       UserDashboard: [],
       userApprovedDashboard: [],
@@ -117,6 +103,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       AmountClaimed: "",
       IsMarried: false,
       TotalAmountClaimed: 0,
+      CHSEligibilityAmount: 0,
       dependentitems: [],
       dropdownOptions: [{ key: 'Self', text: 'Self' }, { key: 'Spouse', text: 'Spouse' }],
 
@@ -209,25 +196,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       isOnBehalfandRetired: false
     };
     // this.getSelectedEmployeeDetail=this.getSelectedEmployeeDetail.bind(this);  
-
-
   }
 
   async componentDidMount() {
-    // const savedTab3 = localStorage.getItem("activeHRdashTab"); // For HR1
-    // const savedTab1 = localStorage.getItem("activeHR1Tab"); // For HR1
-    // const savedTab2 = localStorage.getItem("activeHR2Tab"); // For HR2
-    // if (savedTab3) {
-    //   this.setState({ activeHRdashTab: savedTab3 });
-    // }
-
-    // if (savedTab1) { 
-    //   this.setState({ activeHR1Tab: savedTab1 });
-    // }
-
-    // if (savedTab2) {
-    //   this.setState({ activeHR2Tab: savedTab2 });
-    // }
     const savedTab3 = localStorage.getItem("activeHRdashTab");
     const savedTab1 = localStorage.getItem("activeHR1Tab");
     const savedTab2 = localStorage.getItem("activeHR2Tab");
@@ -357,169 +328,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     await this.checkUserInGroupsForHR2Tab(["HR2_Group"]);
     await this.checkUserInGroupsForTagApproverTab(["TagApprover"]);
 
-
-
     await this.getEmployee();
-    await this.GetEmployeelimit();
-
-
+    ///// await this.GetEmployeelimit(); Commented by AP 27 Nov 2025
   }
-  // async componentDidMount() {
-  //       // Get saved tab selections
-  //       const savedTab3 = localStorage.getItem("activeHRdashTab");
-  //       const savedTab1 = localStorage.getItem("activeHR1Tab");
-  //       const savedTab2 = localStorage.getItem("activeHR2Tab");
-
-  //       this.setState({
-  //         ...(savedTab3 && { activeHRdashTab: savedTab3 }),
-  //         ...(savedTab1 && { activeHR1Tab: savedTab1 }),
-  //         ...(savedTab2 && { activeHR2Tab: savedTab2 }),
-  //       });
-
-  //       // Read query params
-  //       const urlParams = new URLSearchParams(window.location.search);
-  //       const dashTabParam = urlParams.get("dashtab") || "Pending";
-  //       const pivotTabParam = urlParams.get("ptab") || "User";
-
-  //       // ✅ Check groups first
-  // //     await this.checkUserInGroupsForHR1Tab('HR1_Group');
-  // //      await this.checkUserInGroupsForHR1Tab('HR2_Group');
-
-  //       // ✅ Enforce access control
-
-  //       // ✅ Safe to set state only after validation
-  //       switch (pivotTabParam) {
-  //         case "HR1":
-  //            const ishr1= await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
-  // if(ishr1){
-  //       this.setState({
-  //             ShowHR1Tab: true,
-  //             ShowHR2Tab: false,
-
-  //             activeHR1Tab: dashTabParam,
-  //             selectedOuterTab: "HR1"
-  //           });
-  // }
-
-  //           break;
-  //         case "HR2":
-  //             const ishr2= await this.checkUserInGroupsForHR1TabNav(['HR2_Group'])
-  //             if(ishr2){
-  //           this.setState({
-  //             ShowHR2Tab: true,
-  //             ShowHR1Tab: false,
-
-  //             activeHR2Tab: dashTabParam,
-  //             selectedOuterTab: "HR2"
-  //           });
-  //       }
-  //           break;
-  //         default:
-  //           this.setState({
-  //             ShowHRTab: true,
-  //             activeHRdashTab: dashTabParam,
-  //             selectedOuterTab: "User"
-  //           });
-  //           break;
-  //       }
-
-  //       // ✅ After security, load dashboards
-  //       await this.getCurrentUser();
-  //       await this.UserApprovedDashboards();
-  //       await this.UserRejectedDashboards();
-  //       await this.UserPendingDashboard();
-  //       await this.HR1ApprovePendingDashboard();
-  //       await this.HR1ApproveApprovedDashboards();
-  //       await this.HR1ApproveRejectedDashboards();
-  //       await this.HR2ApprovePendingDashboard();
-  //       await this.HR2ApproveApprovedDashboards();
-  //       await this.HR2ApproveRejectedDashboards();
-  //       await this.GetEmployeelimit();
-  //       await this.getEmployee();
-  //     }
-  // async componentDidMount() {
-  //       // Restore saved tabs from localStorage
-  //       // const savedTab3 = localStorage.getItem("activeHRdashTab");
-  //       // const savedTab1 = localStorage.getItem("activeHR1Tab");
-  //       // const savedTab2 = localStorage.getItem("activeHR2Tab");
-
-  //       // this.setState({
-  //       //   ...(savedTab3 && { activeHRdashTab: savedTab3 }),
-  //       //   ...(savedTab1 && { activeHR1Tab: savedTab1 }),
-  //       //   ...(savedTab2 && { activeHR2Tab: savedTab2 }),
-  //       // });
-
-  //       // // Read query params
-  //       // const urlParams = new URLSearchParams(window.location.search);
-  //       // const dashTabParam = urlParams.get("dashtab") || "Pending";
-  //       // const pivotTabParam = urlParams.get("ptab") || "User";
-
-  //       // // ✅ Check group membership first
-  //       // const isHr1 = await this.checkUserInGroupsForHR1TabNav(["HR1_Group"]);
-  //       // const isHr2 = await this.checkUserInGroupsForHR1TabNav(["HR2_Group"]);
-
-  //       // ✅ Safe to set state only after validation
-  //       // switch (pivotTabParam) {
-  //       //   case "HR1":
-  //       //     if (isHr1) {
-  //       //       this.setState({
-  //       //         ShowHR1Tab: true,
-  //       //         ShowHR2Tab: false,
-  //       //         activeHR1Tab: dashTabParam,
-  //       //         selectedOuterTab: "HR1",
-  //       //       });
-  //       //     } else {
-  //       //       // redirect unauthorized HR1 → User
-  //       //       this.setState({
-  //       //         ShowHRTab: true,
-  //       //         activeHRdashTab: "Pending",
-  //       //         selectedOuterTab: "User",
-  //       //       });
-  //       //     }
-  //       //     break;
-
-  //       //   case "HR2":
-  //       //     if (isHr2) {
-  //       //       this.setState({
-  //       //         ShowHR2Tab: true,
-  //       //         ShowHR1Tab: false,
-  //       //         activeHR2Tab: dashTabParam,
-  //       //         selectedOuterTab: "HR2",
-  //       //       });
-  //       //     } else {
-  //       //       // redirect unauthorized HR2 → User
-  //       //       this.setState({
-  //       //         ShowHRTab: true,
-  //       //         activeHRdashTab: "Pending",
-  //       //         selectedOuterTab: "User",
-  //       //       });
-  //       //     }
-  //       //     break;
-
-  //       //   default:
-  //       //     this.setState({
-  //       //       ShowHRTab: true,
-  //       //       activeHRdashTab: dashTabParam,
-  //       //       selectedOuterTab: "User",
-  //       //     });
-  //       //     break;
-  //       // }
-
-  //       // ✅ After security, load dashboards
-  //       await this.getCurrentUser();
-  //       await this.UserApprovedDashboards();
-  //       await this.UserRejectedDashboards();
-  //       await this.UserPendingDashboard();
-  //       await this.HR1ApprovePendingDashboard();
-  //       await this.HR1ApproveApprovedDashboards();
-  //       await this.HR1ApproveRejectedDashboards();
-  //       await this.HR2ApprovePendingDashboard();
-  //       await this.HR2ApproveApprovedDashboards();
-  //       await this.HR2ApproveRejectedDashboards();
-  //       await this.GetEmployeelimit();
-  //       await this.getEmployee();
-  //     }
-
 
   public getFinancialYear() {
     const today = new Date();
@@ -541,8 +352,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     return `April 1, ${startYear} – March 31, ${endYear}`;
   }
 
-
-
   handleOuterTabClick = (tabName) => {
     this.setState({
       selectedOuterTab: tabName,
@@ -552,6 +361,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       // activeHR2Tab: 'Pending'
     });
   }
+
   handleTabClick = (event) => {
     const tabLinks = document.querySelectorAll(".tablink");
 
@@ -573,12 +383,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     }
   }
 
-
-  private handleChangeddl = (selectedOption) => {
-    this.setState({ selectedOption });
-    console.log(`Selected: ${selectedOption.label}`);
-  }
-
   public getCurrentUser = async () => {
     const spCrudObj = await useSPCRUD();
     return await spCrudObj.currentUser(this.props).then(cuser => {
@@ -587,10 +391,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     });
   }
 
-  private handleChangeDrop = (selectedOption) => {
-    this.setState({ selectedOption });
-    console.log(`Selected: ${selectedOption.label}`);
-  }
   public async checkUserInGroupsForHR2TabNav(groupsToCheck: string[]): Promise<boolean> {
     try {
       const spCrudObj = await useSPCRUD();
@@ -684,9 +484,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     }
   }
 
-
-
-
   public async checkUserInGroups(groups: any) {
     try {
       const spCrudObj = await useSPCRUD();
@@ -745,7 +542,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     }
   }
 
-
   public async checkUserInGroupsForHR1Tab(groups: any) {
     try {
       const spCrudObj = await useSPCRUD();
@@ -768,14 +564,24 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       let employeeData = results;
       let limitData: IEmployeeCHSLimitMaster[] = await this.GetEmployeelimit();
       let matchedLimit = limitData.filter((e) => e.Scale.Title == employeeData.Scale && e.Designation.Title == employeeData.DesignationTitle && e.EmployeeType == employeeData.EmployeeType);
+
       debugger;
+      let LIMIT = "";
+      if (employeeData.DesignationTitle == "Managing Director (MD)" ||
+        employeeData.DesignationTitle == "Deputy Managing Director (DMD)") {
+        LIMIT = "1000000";
+      }
+      else {
+        LIMIT = matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : ""
+      }
+
       this.setState({
         EmployeeInfodb: employeeData,
         AllEmployeeCollObj: [],
         EmployeeName: employeeData.EmployeeName,
         EmployeeIDId: employeeData.Id,
         DependentType: "",
-        ActualClaimAmountLable: "",
+        CalculatedCHSEligibilityAmountLabel: "",
         // Approver: employeeData.LeaveLevel2.Title,
         // ApproverId: employeeData.LeaveLevel2Id,
         // Level2Id: employeeData.LeaveLevel2Id,
@@ -792,7 +598,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         // EmpType: employeeData.EmployeeType,
         EmployeeType: employeeData.EmployeeType,
 
-        Limit: matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : "",
+        Limit: LIMIT,
         // GradeId: employeeData.GradeId,
         // CurrentOfficeLocationId: employeeData.CurrentOfficeLocationId,
         // EmployeeSubGroupId: employeeData.SubGroupId,
@@ -823,6 +629,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
               lim.Designation.Title === selectedEmp.Designation.Title &&
               lim.EmployeeType === selectedEmp.EmployeeType.Title
           );
+
+          let LIMIT = "";
+          if (selectedEmp.Designation.Title == "Managing Director (MD)" ||
+            selectedEmp.Designation.Title == "Deputy Managing Director (DMD)") {
+            LIMIT = "1000000";
+          }
+          else {
+            LIMIT = matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : ""
+          }
           this.setState({
             EmployeeName: selectedEmp.EmployeeName,
             // EmployeeIDId: selectedEmp.Id,
@@ -846,14 +661,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             Age: parseInt(selectedEmp.Age),
             EmployeeType: selectedEmp.EmployeeType.Title,
             DependentType: "",
-            ActualClaimAmountLable: "",
+            CalculatedCHSEligibilityAmountLabel: "",
             selectedOption: e,
             //   ExpenseDetails.Amount:""
             // GradeId: selectedEmp.GradeId,
             // CurrentOfficeLocationId: selectedEmp.CurrentOfficeLocationId,
             // EmployeeSubGroupId: selectedEmp.SubGroupId,
             // Role: selectedEmp.Role,
-            Limit: matchedLimit.length > 0 ? matchedLimit[0].Limit : "",
+            ////Limit: matchedLimit.length > 0 ? matchedLimit[0].Limit : "",
+            Limit: LIMIT,
           });
         }
       }
@@ -871,8 +687,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       }));
       this.setState({
         EmployeeInfodb: results,
-        // DependentType: "",
-        // ActualClaimAmountLable: "",
         AllEmployeeCollObj: employeeOptions,
         filteredOptions: employeeOptions,
 
@@ -883,9 +697,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   public _getPeoplePickerItems = (item: IPersonaProps[]) => {
     console.log(item);
   }
-  private _getPeoplePickerItems1(items: any[]) {
-    console.log('Items:', items);
-  }
+
   handleDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, field?: string) => {
     if (option && field) {
       this.setState({ [field]: option.key });
@@ -913,7 +725,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       dependentitems: [],
       DependentType: "",
       AmountClaimed: "",
-      ActualClaimAmountLable: ""
+      CalculatedCHSEligibilityAmountLabel: ""
     })
 
   }
@@ -958,21 +770,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           AmountClaimed: value
         });
 
-        if (this.state.DesignationTitle != "Managing Director (MD)" &&
-          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
-          if (this.state.ActualClaimAmountLable != "") {
-            if (value > this.state.ActualClaimAmountLable) {
-              this.setState({
-                ExpenseDetailsAlert: true
-              });
-            }
-            else {
-              this.setState({
-                ExpenseDetailsAlert: false
-              });
-            }
-          }
-        }
+        this.EligibleClaimAmount(this.state.DependentType, value);
         break;
       case "ExpenseDetails.HR1Remarks":
         this.setState({
@@ -1020,7 +818,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       case "ExpenseDetails.HR1FinalAmount":
         this.setState({
-          // ExpenseDetailsAlert:true,
           ExpenseDetails: {
             ...this.state.ExpenseDetails,
             HR1FinalAmount: + value
@@ -1048,7 +845,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       case "ExpenseDetails.HR2FinalAmount":
         this.setState({
-          // ExpenseDetailsAlert:true,
           ExpenseDetails: {
             ...this.state.ExpenseDetails,
             HR2FinalAmount: + value
@@ -1116,8 +912,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       VendorDetails: value,
     });
   };
-  public EligibleClaimAmount = (e) => {
 
+  public ddlDependentTypeChange = (e) => {
     if (this.state.selectedOptionCHBx != null) {
       if (e == 'Spouse') {
         this.setState({
@@ -1130,91 +926,275 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         })
       }
 
-      let ActualClaimAmountLable;
+      let updatedOptions = [{ key: 'Self', text: 'Self' }];
+
+      if ((e !== 'Spouse' && this.state.selectedOptionCHBx !== 'Yes') || e == 'Spouse') {
+        updatedOptions.push({ key: 'Spouse', text: 'Spouse' });
+      }
+
+      this.setState({
+        DependentType: e,
+        dropdownOptions: updatedOptions
+      });
+
+    }
+    else {
+      alert("Please check on 'Is Spouse Exim Employee' ");
+
+      this.setState({
+        DependentType: null,
+        dropdownOptions: [{ key: 'Self', text: 'Self' }, { key: 'Spouse', text: 'Spouse' }],
+        CalculatedCHSEligibilityAmountLabel: "",  // Optional: clear limit display
+        ShowLableElibleClaimAmount: false
+      });
+
+      return false;
+    }
+  }
+
+  public EligibleClaimAmount = (e, amountClaimed) => {
+    debugger;
+    if (this.state.selectedOptionCHBx != null) {
+      let CalculatedCHSEligibilityAmountLabel;
       const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
       const scaleValue = this.state.Scale;
       if (this.state.EmployeeType.Title != 'RETIRED') {
         if (this.state.Scale !== "GOVT") {
           const numberOnlyScale = parseFloat(scaleValue.match(/\d+$/)[0]);
           if (this.state.Age < 40 && numberOnlyScale <= 5) {
-            let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+            let Scale5LIMIT = LIMIT ? LIMIT : 0;
             const Scale5LIMITSelf = (Scale5LIMIT) * 0.9;
-            ActualClaimAmountLable = Scale5LIMITSelf;
-            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+            //// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+
+            if (amountClaimed > LIMIT) {
+              let calculatedAmountClaimed = (amountClaimed) * 0.9;
+              if (calculatedAmountClaimed > LIMIT)
+                CalculatedCHSEligibilityAmountLabel = LIMIT
+              else
+                CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+            }
+            else {
+              if (amountClaimed > Scale5LIMITSelf) {
+                CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+              }
+              else {
+                CalculatedCHSEligibilityAmountLabel = amountClaimed
+              }
+            }
 
             if (e == 'Spouse') {
-              let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+              let Scale5LIMIT = LIMIT ? LIMIT : 0;
               const Scale5LIMITSpouse = (Scale5LIMIT) * 0.75
-              ActualClaimAmountLable = Scale5LIMITSpouse;
-              // if (Scale5LIMITSpouse > 15000) {
-              ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
-              //}
+              //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
+              //// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+              if (amountClaimed > LIMIT) {
+                let calculatedAmountClaimed = (amountClaimed) * 0.75;
+                if (calculatedAmountClaimed > LIMIT)
+                  CalculatedCHSEligibilityAmountLabel = LIMIT
+                else
+                  CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+              }
+              else {
+                if (amountClaimed > Scale5LIMITSpouse) {
+                  CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
+                }
+                else {
+                  CalculatedCHSEligibilityAmountLabel = amountClaimed
+                }
+              }
+
             }
           }
           if (this.state.Age > 40 && numberOnlyScale <= 5) {
-            let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+            let Scale5LIMIT = LIMIT ? LIMIT : 0;
             const Scale5LIMITSelf = (Scale5LIMIT) * 1;
-            ActualClaimAmountLable = Scale5LIMITSelf;
-            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+
+            ////CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+            if (amountClaimed > LIMIT) {
+              let calculatedAmountClaimed = (amountClaimed) * 1;
+              if (calculatedAmountClaimed > LIMIT)
+                CalculatedCHSEligibilityAmountLabel = LIMIT
+              else
+                CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+            }
+            else {
+              if (amountClaimed > Scale5LIMITSelf) {
+                CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+              }
+              else {
+                CalculatedCHSEligibilityAmountLabel = amountClaimed
+              }
+            }
 
             if (e == 'Spouse') {
-              let Scale5LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+              let Scale5LIMIT = LIMIT ? LIMIT : 0;
               const Scale5LIMITSpouse = (Scale5LIMIT) * 0.75
-              ActualClaimAmountLable = Scale5LIMITSpouse;
-              // if (Scale5LIMITSpouse > 15000) {
-              // ActualClaimAmountLable = "15000";
-              ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+              ////CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
+              //// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
 
-              // }
+              if (amountClaimed > LIMIT) {
+                let calculatedAmountClaimed = (amountClaimed) * 0.75;
+                if (calculatedAmountClaimed > LIMIT)
+                  CalculatedCHSEligibilityAmountLabel = LIMIT
+                else
+                  CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+              }
+              else {
+                if (amountClaimed > Scale5LIMITSpouse) {
+                  CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
+                }
+                else {
+                  CalculatedCHSEligibilityAmountLabel = amountClaimed
+                }
+              }
             }
           }
           if (numberOnlyScale > 5) {
-            const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-            ActualClaimAmountLable = Scale5LIMITSelf;
-            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+            const Scale5LIMITSelf = LIMIT ? LIMIT : 0;
+            ////CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+            ////  CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+            if (amountClaimed > LIMIT) {
+              let calculatedAmountClaimed = (amountClaimed);
+              if (calculatedAmountClaimed > LIMIT)
+                CalculatedCHSEligibilityAmountLabel = LIMIT
+              else
+                CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+            }
+            else {
+              if (amountClaimed > Scale5LIMITSelf) {
+                CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+              }
+              else {
+                CalculatedCHSEligibilityAmountLabel = amountClaimed
+              }
+            }
+
 
             if (e == 'Spouse') {
-              const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+              const Scale5LIMITSpause = LIMIT ? LIMIT : 0;
               const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
-              ActualClaimAmountLable = Scale5LIMITSpause1;
-              // if (Scale5LIMITSpause1 > 20000) {
-              // ActualClaimAmountLable = "20000";
-              ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+              ////CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
+              ////CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
 
-              // }
+              if (amountClaimed > LIMIT) {
+                let calculatedAmountClaimed = (amountClaimed) * 0.75;
+                if (calculatedAmountClaimed > LIMIT)
+                  CalculatedCHSEligibilityAmountLabel = LIMIT
+                else
+                  CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+              }
+              else {
+                if (amountClaimed > Scale5LIMITSpause1) {
+                  CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
+                }
+                else {
+                  CalculatedCHSEligibilityAmountLabel = amountClaimed
+                }
+              }
+
             }
           }
         }
         else {
-          const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-          ActualClaimAmountLable = Scale5LIMITSelf;
-          ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+          const Scale5LIMITSelf = LIMIT ? LIMIT : 0;
+          //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+          ////  CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+          if (amountClaimed > LIMIT) {
+            let calculatedAmountClaimed = (amountClaimed);
+            if (calculatedAmountClaimed > LIMIT)
+              CalculatedCHSEligibilityAmountLabel = LIMIT
+            else
+              CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+          }
+          else {
+            if (amountClaimed > Scale5LIMITSelf) {
+              CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+            }
+            else {
+              CalculatedCHSEligibilityAmountLabel = amountClaimed
+            }
+          }
 
           if (e == 'Spouse') {
             const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
             const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
-            ActualClaimAmountLable = Scale5LIMITSpause1;
+            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
             // if (Scale5LIMITSpause1 > 20000) {
-            // ActualClaimAmountLable = "20000";
-            ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+            // CalculatedCHSEligibilityAmountLabel = "20000";
+            /////CalculatedCHSEligibilityAmountLabel = Math.min((this.state.Limit - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
 
+            if (amountClaimed > LIMIT) {
+              let calculatedAmountClaimed = (amountClaimed) * 0.75;
+              if (calculatedAmountClaimed > LIMIT)
+                CalculatedCHSEligibilityAmountLabel = LIMIT
+              else
+                CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+            }
+            else {
+              if (amountClaimed > Scale5LIMITSpause1) {
+                CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
+              }
+              else {
+                CalculatedCHSEligibilityAmountLabel = amountClaimed
+              }
+            }
             //  }
           }
         }
       }
       if (this.state.EmployeeType.Title == 'RETIRED') {
-        const Scale5LIMITSelf = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-        const Scale5LIMITSelf1 = (Scale5LIMITSelf) * 0.9;
-        ActualClaimAmountLable = Scale5LIMITSelf1;
-        ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+        const Scale5LIMITSelf = LIMIT ? LIMIT : 0;
+        /// const Scale5LIMITSelf1 = (Scale5LIMITSelf) * 0.9;
+        //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf1;
+        ///// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+        if (amountClaimed > LIMIT) {
+          let calculatedAmountClaimed = (amountClaimed) * 0.9;
+          if (calculatedAmountClaimed > LIMIT)
+            CalculatedCHSEligibilityAmountLabel = LIMIT
+          else
+            CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+        }
+        else {
+          if (amountClaimed > Scale5LIMITSelf) {
+            CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
+          }
+          else {
+            CalculatedCHSEligibilityAmountLabel = amountClaimed
+          }
+        }
+
 
         if (e == 'Spouse') {
-          const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
+          const Scale5LIMITSpause = LIMIT ? LIMIT : 0;
           const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
-          ActualClaimAmountLable = Scale5LIMITSpause1;
-          // if (ActualClaimAmountLable > 15000) {
-          // ActualClaimAmountLable = "15000"
-          ActualClaimAmountLable = Math.min((this.state.Limit - this.state.TotalAmountClaimed), ActualClaimAmountLable);
+          ////  CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
+          // if (CalculatedCHSEligibilityAmountLabel > 15000) {
+          // CalculatedCHSEligibilityAmountLabel = "15000"
+          ////CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
+
+          if (amountClaimed > LIMIT) {
+            let calculatedAmountClaimed = (amountClaimed) * 0.75;
+            if (calculatedAmountClaimed > LIMIT)
+              CalculatedCHSEligibilityAmountLabel = LIMIT
+            else
+              CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
+          }
+          else {
+            if (amountClaimed > Scale5LIMITSpause1) {
+              CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
+            }
+            else {
+              CalculatedCHSEligibilityAmountLabel = amountClaimed
+            }
+          }
 
           // }
         }
@@ -1228,7 +1208,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       this.setState({
         DependentType: e,
-        ActualClaimAmountLable: ActualClaimAmountLable,
+        CalculatedCHSEligibilityAmountLabel: CalculatedCHSEligibilityAmountLabel,
         ////   selectedOptionCHBx: null,  //AP 7/7/25
         ShowLableElibleClaimAmount: true,
         dropdownOptions: updatedOptions
@@ -1240,350 +1220,13 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       this.setState({
         DependentType: null,
         dropdownOptions: [{ key: 'Self', text: 'Self' }, { key: 'Spouse', text: 'Spouse' }],
-        ActualClaimAmountLable: "",  // Optional: clear limit display
+        CalculatedCHSEligibilityAmountLabel: "",  // Optional: clear limit display
         ShowLableElibleClaimAmount: false
       });
 
       return false;
     }
   };
-
-
-  //   public BtnSubmitRequest = async () => {
-  //     this.setState({ isSubmitting: true });
-  //     // "EmployeeName": "Farm Admin",
-  //     // "EmployeeID": "11",
-  //     // if(this.state.EmployeeName)
-  //     if (this.state.DependentType == 'Spouse') {
-  //       if (this.state.selectedOptionCHBx == null) {
-  //         this.setState({ isSubmitting: false });
-  //         alert("Please check on 'Is Spouse Exim Employee' ");
-  //         return false;
-  //       }
-  //     }
-  //     const currentDate = new Date();
-  //     const currentYear = currentDate.getFullYear();
-  //     const financialYearStart = new Date(currentDate.getMonth() < 3 ? currentYear - 1 : currentYear, 3, 1);
-  //     const financialYearEnd = new Date(financialYearStart.getFullYear() + 1, 2, 31);
-  //     let existingRequests
-  //     await EmployeeOps().getEmployeeMasterById(this.props).then(results => {
-  //       existingRequests = results;
-  //     })
-  //     let hasRequestThisYear = [];
-  //     let counter = 0;
-  //     // if (existingRequests.length > 0) {
-  //     //   for (var e = 0; e < existingRequests.length; e++) {
-  //     //     if ((existingRequests[e].DependentType == this.state.DependentType) && (existingRequests[e].EmployeeID == this.state.EmployeeID) && existingRequests[e].Status != "Rejected") {
-  //     //       hasRequestThisYear = existingRequests.filter(
-  //     //         (req) =>
-  //     //           new Date(req.Created) >= financialYearStart &&
-  //     //           new Date(req.Created) <= financialYearEnd && req.EmployeeID == this.state.EmployeeID
-  //     //       );
-  //     //       if (hasRequestThisYear.length > 0) {
-  //     //         counter++;
-  //     //       }
-  //     //     }
-  //     //   }
-  //     // }
-
-  //     if (existingRequests.length > 0) {
-  //       // Function to normalize date (set time to 00:00:00)
-  //       const normalizeDate = (date) => {
-  //         let d = new Date(date);
-  //         d.setHours(0, 0, 0, 0);
-  //         return d;
-  //       };
-
-  //       let financialYearStartNormalized = normalizeDate(financialYearStart);
-  //       let financialYearEndNormalized = normalizeDate(financialYearEnd);
-
-  //       // Filter requests for the current employee and financial year
-  //       let hasRequestThisYear = existingRequests.filter(
-  //         (req) =>
-
-  //           normalizeDate(req.Created) >= financialYearStartNormalized &&
-  //           normalizeDate(req.Created) <= financialYearEndNormalized &&
-  //           req.EmployeeID == this.state.EmployeeID
-  //       );
-
-  //       for (let req of existingRequests) {
-  //         if (
-  //           ////  req.DependentType === this.state.DependentType && ////AP 2/7/25
-  //           req.EmployeeID === this.state.EmployeeID &&
-  //           req.Status !== "Rejected"
-  //         ) {
-  //           if (hasRequestThisYear.length > 0) {
-  //             counter++;
-  //             break; // Exit loop early once a match is found
-  //           }
-  //         }
-  //       }
-  //     }
-
-
-  //     console.log(counter);
-  //     // if (counter > 0 && this.state.EmpType != "RETIRED") {
-  //     if (counter > 0) {
-  //       this.setState({ isSubmitting: false });
-  //       alert("You have already submitted a request this financial year!");
-  //      // return false;
-  //     }
-  //     const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-  //     const scaleValue = this.state.Scale;
-  //     // const numberOnlyScale = parseFloat(scaleValue.match(/\d+$/)[0]);
-  //     const CLAIMAMOUNT = this.state.ExpenseDetails ? parseFloat(this.state.ExpenseDetails.Amount) : 0;
-  //     if (LIMIT == 0) {
-  //       this.setState({ isSubmitting: false });
-  //       alert('Please Map Limit !')
-  //       return false;
-  //     }
-  //     /* //// AP8/7/25  if (this.state.ActualClaimAmountLable == "") {
-  //         alert('Please Select Dependent Type');
-  //         return false;
-  //       } 
-  //       if (!this.state.ExpenseDetails) {
-  //         alert('Please Enter Claim Amount !!');
-  //         return false;
-  //       }
-  //       if (this.state.ExpenseDetails.Amount == 0 || this.state.ExpenseDetails.Amount == null) {
-  //         alert('Please Enter Claim Amount !!');
-  //         return false;
-  //       }*/
-  //     if (this.state.dependentitems.length == 0 || this.state.dependentitems == null || this.state.dependentitems == undefined) {
-
-  //       this.setState({ isSubmitting: false });
-  //       alert('Please Enter Claim Amount !!');
-  //       return false;
-  //     }
-  //     if (this.state.TotalAmountClaimed > LIMIT) {
-  //       this.setState({ isSubmitting: false });
-  //       alert('Claim Amount should be less than CHS Limit! ')
-  //       return false;
-  //     }
-  //     /*  //// AP8/7/25  if (this.state.ActualClaimAmountLable < this.state.ExpenseDetails.Amount) {
-  //         alert('Claim Amount should be less than Limit! ')
-  //         return false;
-  //       }*/
-
-  //     const arrScaleUpto5 = ["SCALE1", "SCALE2", "SCALE3", "SCALE4", "SCALE5"];
-  //     const arrScaleAbove6 = ["SCALE6", "SCALE7", "SCALE8", "GOVT"];
-
-  //     if (this.state.Scale) {
-  //       if (arrScaleUpto5.indexOf(this.state.Scale) !== -1) {
-  //         if (Number(this.state.Age) < 40) {
-
-  //         }
-  //         else if (Number(this.state.Age) >= 40) {
-
-  //         }
-
-  //       } else if (arrScaleAbove6.indexOf(this.state.Scale) !== -1) {
-
-  //       } else {
-  //         console.log("Scale does not match known values");
-  //       }
-  //     }
-
-
-  //     if (this.state.files == undefined || this.state.files == null || !this.state.files || this.state.files.length == 0) {
-  //       this.setState({ isSubmitting: false });
-  //       alert('Please Attach Files! ')
-  //       return false;
-  //     }
-
-  //     const spCrudObj = await useSPCRUD();
-  //     var CHSRequestItem;
-
-  //     const selfItem = this.state.dependentitems.find(item => item.DependentType === 'Self');
-  //     const spouseItem = this.state.dependentitems.find(item => item.DependentType === 'Spouse');
-
-  //     const actualEligibilityLimit = selfItem ? selfItem.ActualClaimAmountLable : (spouseItem ? spouseItem.ActualClaimAmountLable : 0);
-
-  //     let pivotTab = "User";
-  //     let dashTab = "Pending";
-  //     if (!this.state.ShowHR1Tab || !this.state.ShowHR2Tab) {
-  //       pivotTab = "User";
-  //       dashTab = "Pending";
-  //       CHSRequestItem = {
-  //         OnBehalf: this.state.OnBehalf,
-  //         EmployeeID: this.state.EmployeeID,
-  //         Scale: this.state.Scale,
-  //         EmployeeType: ''+this.state.EmployeeType,
-  //         DependentType: this.state.DependentType,
-  //         Status: "Pending",
-  //         HR1Response: "Pending with HR1",
-  //         EligibilityLimit: actualEligibilityLimit,
-  //         Limit: +this.state.Limit,
-  //         FinancialYear:this.state.CurrentFinancialYear,
-  //         HR2Response: "Pending with HR2",
-  //         RequestorEmail: this.state.CompanyEmail,
-
-  //         IsSpouseEximMember: this.state.selectedOptionCHBx,
-  //         DateofBirth: new Date(this.state.DateofBirth),
-  //         Designation: this.state.DesignationTitle,
-  //         Age: '' + this.state.Age,
-  //         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
-  //         AmountClaimed: this.state.TotalAmountClaimed,
-  //         EmployeeName: this.state.EmployeeName,
-  //         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-  //         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-  //       };
-  //     }
-  //     if (this.state.ShowHR1Tab) {
-  //       pivotTab = "HR1";
-  //       dashTab = "Approved";
-  // if(this.state.OnBehalf == "Yes"){
-  //   let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-  //   if ( this.state.EmployeeType == "RETIRED") {
-  //     hrApprovedAmount = this.state.TotalAmountClaimed
-  //   }
-  //   CHSRequestItem = {
-  //     OnBehalf: this.state.OnBehalf,
-  //     EmployeeID: this.state.EmployeeID,
-  //     Scale: this.state.Scale,
-  //     EmployeeType: ''+this.state.EmployeeType,
-  //     DependentType: this.state.DependentType,
-  //     Status: "Approved",
-  //     HR1Response: "Approved by HR1",
-  //     IsSpouseEximMember: this.state.selectedOptionCHBx,
-  //     RequestorEmail: this.state.CompanyEmail,
-  //     FinancialYear:this.state.CurrentFinancialYear,
-
-  //     // HR2Response: "",
-  //     HR1ApproverNameId: this.state.Currentuser.Id,
-  //     HR2Response: "Approved by HR2",
-  //     HR1ResponseDate: new Date(),
-  //     EligibilityLimit: actualEligibilityLimit,
-  //     Limit: +this.state.Limit,
-  //     DateofBirth: new Date(this.state.DateofBirth),
-  //     Designation: this.state.DesignationTitle,
-  //     Age: '' + this.state.Age,
-  //     ////AmountClaimed: +this.state.ExpenseDetails.Amount,  //AP 8/7/25
-  //     AmountClaimed: this.state.TotalAmountClaimed,
-  //     HRApprovedAmount: +hrApprovedAmount,
-  //     EmployeeName: this.state.EmployeeName,
-  //     DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-  //     HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-  //   };
-  // }
-
-
-  //     }
-  //     if (this.state.ShowHR2Tab) {
-  //       pivotTab = "HR2";
-  //       dashTab = "Approved";
-  // if(this.state.OnBehalf == "Yes"){
-  //       let hrApprovedAmount = this.state.ExpenseDetails.Amount;
-  //       if ( this.state.EmployeeType == "RETIRED") {
-  //         hrApprovedAmount = this.state.TotalAmountClaimed
-  //       }
-
-  //       CHSRequestItem = {
-  //         OnBehalf: this.state.OnBehalf,
-  //         EmployeeID: this.state.EmployeeID,
-  //         Scale: this.state.Scale,
-  //         EmployeeType: ''+this.state.EmployeeType,
-  //         DependentType: this.state.DependentType,
-  //         Status: "Approved",
-  //         // HR1Response: "",
-  //         HR2Response: "Approved by HR2",
-  //         HR1Response: "Approved by HR1",
-  //         FinancialYear:this.state.CurrentFinancialYear,
-
-  //         IsSpouseEximMember: this.state.selectedOptionCHBx,
-  //         RequestorEmail: this.state.CompanyEmail,
-
-  //         HR2ApproverNameId: this.state.Currentuser.Id,
-  //         // HR2Response: "Pending with HR2",
-  //         HR2ResponseDate: new Date(),
-  //         EligibilityLimit: actualEligibilityLimit,
-  //         Limit: +this.state.Limit,
-  //         DateofBirth: new Date(this.state.DateofBirth),
-  //         Designation: this.state.DesignationTitle,
-  //         Age: '' + this.state.Age,
-  //         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
-  //         AmountClaimed: this.state.TotalAmountClaimed,
-  //         HRApprovedAmount: +hrApprovedAmount,
-  //         EmployeeName: this.state.EmployeeName,
-  //         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-  //         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-  //       };
-  //     }
-  //     else{
-  //       CHSRequestItem = {
-  //         OnBehalf: this.state.OnBehalf,
-  //         EmployeeID: this.state.EmployeeID,
-  //         Scale: this.state.Scale,
-  //         EmployeeType:''+ this.state.EmployeeType,
-  //         DependentType: this.state.DependentType,
-  //         Status: "Pending",
-  //         HR1Response: "Pending with HR1",
-  //         EligibilityLimit: actualEligibilityLimit,
-  //         Limit: +this.state.Limit,
-  //         FinancialYear:this.state.CurrentFinancialYear,
-  //         HR2Response: "Pending with HR2",
-  //         RequestorEmail: this.state.CompanyEmail,
-
-  //         IsSpouseEximMember: this.state.selectedOptionCHBx,
-  //         DateofBirth: new Date(this.state.DateofBirth),
-  //         Designation: this.state.DesignationTitle,
-  //         Age: '' + this.state.Age,
-  //         ////AmountClaimed: +this.state.ExpenseDetails.Amount, //AP 8/7/25
-  //         AmountClaimed: this.state.TotalAmountClaimed,
-  //         EmployeeName: this.state.EmployeeName,
-  //         DependentClaimDetails: JSON.stringify(this.state.dependentitems),
-  //         HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired
-  //       };
-  //     }
-  //   }
-
-  //     // return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
-  //     //   this.setState({ reqID: req.data.ID });
-  //     //   const RequestNoGenerate = {
-  //     //     Title: 'CHS000' + req.data.ID,
-  //     //   };
-  //     //   await spCrudObj.updateData("HealthCheckupService", req.data.ID, RequestNoGenerate, this.props)
-  //     //   if (this.state.files && this.state.files.length > 0) {
-  //     //     await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-  //     //     alert('CHS Request Submitted Successfully!');
-  //     //     this.setState({ isSubmitting: false });
-  //     //     this.closeDialog();
-  //     //     location.reload();
-  //     //   } else {
-  //     //     alert('CHS Request Submitted without attachments.');
-  //     //     return false;
-  //     //   }
-  //     //   return req;
-  //     // });
-
-  //     return await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props).then(async (req) => {
-  //       this.setState({ reqID: req.data.ID });
-
-  //       const RequestNoGenerate = {
-  //         Title: 'CHS000' + req.data.ID,
-  //       };
-
-  //       await spCrudObj.updateData("HealthCheckupService", req.data.ID, RequestNoGenerate, this.props);
-
-  //       if (this.state.files && this.state.files.length > 0) {
-  //         await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-  //         alert('CHS Request Submitted Successfully!');
-  //       } else {
-  //         alert('CHS Request Submitted without attachments.');
-  //       }
-
-  //       // Ensure dialog closes and dashboard reloads
-  //       this.setState({ isSubmitting: false });
-  //       this.closeDialog();
-
-  //       // Force dashboard reload
-  //         window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
-  //       //window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=` + dashTab + `&ptab=` + pivotTab;  // Update the URL path to your dashboard route
-
-  //       return req;
-  //     });
-  //   };
-
 
   public BtnSubmitRequest = async () => {
     this.setState({ isSubmitting: true });
@@ -1611,12 +1254,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         }
       }
 
-      if (this.state.DesignationTitle != "Managing Director (MD)" &&
-        this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
-        if (this.state.TotalAmountClaimed > LIMIT) {
-          return this.fail("Claim Amount should be less than CHS Limit!");
-        }
-      }
+      /*  if (this.state.DesignationTitle != "Managing Director (MD)" &&
+          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+          if (this.state.TotalAmountClaimed > LIMIT) {
+            return this.fail("Claim Amount should be less than CHS Limit!");
+          }
+        }*/
 
       // Step 2: Check Existing Requests
       const currentDate = new Date();
@@ -1696,9 +1339,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     let dashTab = "Pending";
     const selfItem = this.state.dependentitems.find((i) => i.DependentType === "Self");
     const spouseItem = this.state.dependentitems.find((i) => i.DependentType === "Spouse");
-    ////const actualEligibilityLimit = selfItem.ActualClaimAmountLable || spouseItem.ActualClaimAmountLable || 0;
-    var actualEligibilityLimit = (selfItem && selfItem.ActualClaimAmountLable) ||
-      (spouseItem && spouseItem.ActualClaimAmountLable) || 0;
+    ////const actualEligibilityLimit = selfItem.CalculatedCHSEligibilityAmountLabel || spouseItem.CalculatedCHSEligibilityAmountLabel || 0;
+    var actualEligibilityLimit = (selfItem && selfItem.CalculatedCHSEligibilityAmountLabel) ||
+      (spouseItem && spouseItem.CalculatedCHSEligibilityAmountLabel) || 0;
     const dob = this.state.DateofBirth; // "25-6-1956"
     const [day, month, year] = dob.split("-");
 
@@ -1724,6 +1367,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       Designation: this.state.DesignationTitle,
       Age: "" + this.state.Age,
       AmountClaimed: this.state.TotalAmountClaimed,
+      CHSEligibilityAmount: this.state.CHSEligibilityAmount,
       EmployeeName: this.state.EmployeeName,
       DependentClaimDetails: JSON.stringify(this.state.dependentitems),
       HRRemarkForRetired: this.state.ExpenseDetails.HRRemarkForRetired,
@@ -1737,7 +1381,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       if (this.state.OnBehalf === "Yes") {
         const hrApprovedAmount =
           this.state.EmployeeType === "RETIRED"
-            ? this.state.TotalAmountClaimed
+            ? this.state.CHSEligibilityAmount
             : this.state.ExpenseDetails.Amount;
 
         item = {
@@ -1762,7 +1406,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       if (this.state.OnBehalf === "Yes") {
         const hrApprovedAmount =
           this.state.EmployeeType === "RETIRED"
-            ? this.state.TotalAmountClaimed
+            ? this.state.CHSEligibilityAmount
             : this.state.ExpenseDetails.Amount;
 
         item = {
@@ -1786,27 +1430,34 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
   public BtnApproveHR1Request = async () => {
     this.setState({ isApproving: true });
-    if (!this.state.ExpenseDetails) {
-      alert('Please mention Remarks ');
-      this.setState({ isApproving: false });
-      return false;
-    }
-    if (!this.state.ExpenseDetails) {
-      if (this.state.ExpenseDetails.HR1FinalAmount == 0) {
+    if (this.state.ExpenseDetails) {
+      if (this.state.ExpenseDetails.HR1Remarks == "" || this.state.ExpenseDetails.HR1Remarks == undefined) {
+        alert('Please mention Remarks ');
+        this.setState({ isApproving: false });
+        return false;
+      }
+
+      if (this.state.ExpenseDetails.HR1FinalAmount == undefined || this.state.ExpenseDetails.HR1FinalAmount == null || this.state.ExpenseDetails.HR1FinalAmount == "" || this.state.ExpenseDetails.HR1FinalAmount == 0) {
         alert('Please Enter Final Amount ');
         this.setState({ isApproving: false });
         return false;
       }
     }
-
-    if (this.state.CHSApproverView.Designation != "Managing Director (MD)" &&
-      this.state.CHSApproverView.Designation != "Deputy Managing Director (DMD)") {
-      if (this.state.ExpenseDetails.HR1FinalAmount > this.state.CHSApproverView.AmountClaimed) {
-        alert('Final Claim Amount should be less than Eligible Limit! ');
-        this.setState({ isApproving: false });
-        return false;
-      }
+    else {
+      alert('Please enter required details ');
+      this.setState({ isApproving: false });
+      return false;
     }
+
+
+    //// if (this.state.CHSApproverView.Designation != "Managing Director (MD)" &&
+    ////    this.state.CHSApproverView.Designation != "Deputy Managing Director (DMD)") {
+    if (this.state.ExpenseDetails.HR1FinalAmount > this.state.CHSApproverView.CHSEligibilityAmount) {
+      alert('Final Claim Amount should be less than Eligible Limit! ');
+      this.setState({ isApproving: false });
+      return false;
+    }
+    //// }
     const spCrudObj = await useSPCRUD();
 
     var CHSRequestItem = {
@@ -1832,25 +1483,30 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   public BtnApproveHR2Request = async () => {
     this.setState({ isApproving: true });
 
-    if (this.state.CHSApproverView.Designation != "Managing Director (MD)" &&
-      this.state.CHSApproverView.Designation != "Deputy Managing Director (DMD)") {
-      if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.AmountClaimed) {
-        alert('Final Claim Amount should be less than Eligible Limit! ');
-        this.setState({ isApproving: false });
-        return false;
-      }
-    }
-    if (!this.state.ExpenseDetails) {
-      alert('Please mention Remarks ');
+    //// if (this.state.CHSApproverView.Designation != "Managing Director (MD)" &&
+    //// this.state.CHSApproverView.Designation != "Deputy Managing Director (DMD)") {
+    if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.CHSEligibilityAmount) {
+      alert('Final Claim Amount should be less than Eligible Limit! ');
       this.setState({ isApproving: false });
       return false;
     }
-    if (!this.state.ExpenseDetails) {
-      if (this.state.ExpenseDetails.HR2FinalAmount == 0) {
+    //// }
+    if (this.state.ExpenseDetails) {
+      if (this.state.ExpenseDetails.HR2Remarks == "" || this.state.ExpenseDetails.HR2Remarks == undefined) {
+        alert('Please mention Remarks ');
+        this.setState({ isApproving: false });
+        return false;
+      }
+      if (this.state.ExpenseDetails.HR2FinalAmount == undefined || this.state.ExpenseDetails.HR2FinalAmount == null || this.state.ExpenseDetails.HR2FinalAmount == "" || this.state.ExpenseDetails.HR2FinalAmount == 0) {
         alert('Please Enter Final Amount ');
         this.setState({ isApproving: false });
         return false;
       }
+    }
+    else {
+      alert('Please enter required details ');
+      this.setState({ isApproving: false });
+      return false;
     }
 
 
@@ -2065,7 +1721,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     });
   };
 
-
   // allDashboardDataHR1Pending:[],
 
   // allDashboardDataHR1Rejected:[],
@@ -2091,9 +1746,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     });
   };
 
-
-
-
   public HR2ApproveApprovedDashboards = async () => {
     return await EmployeeOps().HR2getApproveApprovedDashboard(this.props).then(UserApproved => {
       this.setState({ HR2ApproverApprDashboard: UserApproved, allDashboardDataHR2Approved: UserApproved });
@@ -2107,16 +1759,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     });
   };
 
-
   public TagApproverPendingDashboard = async () => {
     return await EmployeeOps().TagApprovergetApproveDashboard(this.props).then(UserPending => {
       this.setState({ TagApproverPendingDashboard: UserPending, allDashboardDataTagApproverPending: UserPending });
       return UserPending;
     });
   };
-
-
-
 
   public TagApproverApprovedDashboards = async () => {
     return await EmployeeOps().TagApprovergetApproveApprovedDashboard(this.props).then(UserApproved => {
@@ -2205,8 +1853,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     })
   }
 
-
-
   handleAdd = () => {
     const hasSelfDependent = this.state.dependentitems.some(
       (item) => item.DependentType === "Self"
@@ -2216,18 +1862,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       (item) => item.DependentType === "Spouse"
     );
 
-
     if (this.state.dependentitems.length < 2) {
-
-
-      const { DependentType, AmountClaimed, ActualClaimAmountLable, dependentitems } = this.state;
+      const { DependentType, AmountClaimed, CalculatedCHSEligibilityAmountLabel, dependentitems } = this.state;
 
       if (hasSelfDependent && DependentType == "Self") {
         alert("You have already added claim amount for Self!");
         this.setState({
           DependentType: "",
           AmountClaimed: "",
-          ActualClaimAmountLable: ""
+          CalculatedCHSEligibilityAmountLabel: ""
         });
         return false;
       }
@@ -2236,7 +1879,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         this.setState({
           DependentType: "",
           AmountClaimed: "",
-          ActualClaimAmountLable: ""
+          CalculatedCHSEligibilityAmountLabel: ""
         });
         return false;
       }
@@ -2245,45 +1888,24 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
         const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
 
-        if (this.state.DesignationTitle != "Managing Director (MD)" &&
-          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
-          if (LIMIT == 0) {
-            alert('Please Map Limit !');
-            this.setState({
-              DependentType: "",
-              AmountClaimed: "",
-              ActualClaimAmountLable: ""
-            });
-            return false;
-          }
+        ////  if (this.state.DesignationTitle != "Managing Director (MD)" &&
+        ////    this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+        if (LIMIT == 0) {
+          alert('Please Map Limit !');
+          this.setState({
+            DependentType: "",
+            AmountClaimed: "",
+            CalculatedCHSEligibilityAmountLabel: ""
+          });
+          return false;
         }
-
-        const totalClaimedInDependentItems = this.state.dependentitems.reduce((sum, item) => {
-          return sum + parseFloat(item.AmountClaimed || 0);
-        }, 0);
-
-        let totalamountclaimed = parseFloat(totalClaimedInDependentItems) + parseFloat(AmountClaimed)
-
-        if (this.state.DesignationTitle != "Managing Director (MD)" &&
-          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
-          if (totalamountclaimed > LIMIT) {
-            alert('Total Claim Amount should not exceed CHS Limit! ');
-            this.setState({
-              DependentType: "",
-              AmountClaimed: "",
-              ActualClaimAmountLable: ""
-            });
-            return false;
-          }
-        }
-
-
+        ////}
 
         this.setState({
-          dependentitems: [...dependentitems, { DependentType, AmountClaimed, ActualClaimAmountLable }],
+          dependentitems: [...dependentitems, { DependentType, AmountClaimed, CalculatedCHSEligibilityAmountLabel }],
           DependentType: "",
           AmountClaimed: "",
-          ActualClaimAmountLable: ""
+          CalculatedCHSEligibilityAmountLabel: ""
 
         }, () => {
           const dependentTypesCSV = this.state.dependentitems
@@ -2294,8 +1916,13 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             return sum + parseFloat(item.AmountClaimed || 0);
           }, 0);
 
+          const totalClaimedCHSEligibilityAmount = this.state.dependentitems.reduce((sum, item) => {
+            return sum + parseFloat(item.CalculatedCHSEligibilityAmountLabel || 0);
+          }, 0);
+
           this.setState({
             TotalAmountClaimed: totalClaimed,
+            CHSEligibilityAmount: totalClaimedCHSEligibilityAmount,
             DependentType: dependentTypesCSV
           });
         });
@@ -2309,7 +1936,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       this.setState({
         DependentType: "",
         AmountClaimed: "",
-        ActualClaimAmountLable: ""
+        CalculatedCHSEligibilityAmountLabel: ""
       });
     }
 
@@ -2323,10 +1950,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         return sum + parseFloat(item.AmountClaimed || 0);
       }, 0);
 
+      const totalClaimedCHSEligibilityAmount = this.state.dependentitems.reduce((sum, item) => {
+        return sum + parseFloat(item.CalculatedCHSEligibilityAmountLabel || 0);
+      }, 0);
+
       this.setState({
         TotalAmountClaimed: totalClaimed,
+        CHSEligibilityAmount: totalClaimedCHSEligibilityAmount,
         DependentType: "",
-        ActualClaimAmountLable: 0
+        CalculatedCHSEligibilityAmountLabel: 0
 
 
 
@@ -2341,7 +1973,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       const { allDashboardDataHR2Approved, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataHR2Approved : allDashboardDataHR2Approved.filter((item) => item.EmployeeType === DependentType);
+      ///  const filteredData = DependentType === "ALL" ? allDashboardDataHR2Approved : allDashboardDataHR2Approved.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataHR2Approved : DependentType === "GOVT" ? allDashboardDataHR2Approved.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR2Approved.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         HR2ApproverApprDashboard: filteredData
@@ -2357,7 +1990,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       const { allDashboardDataHR2Rejected, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataHR2Rejected : allDashboardDataHR2Rejected.filter((item) => item.EmployeeType === DependentType);
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR2Rejected : allDashboardDataHR2Rejected.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataHR2Rejected : DependentType === "GOVT" ? allDashboardDataHR2Rejected.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR2Rejected.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         HR2ApproverRejectDashboard: filteredData
@@ -2374,7 +2008,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       const { allDashboardDataTagApproverApproved, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverApproved : allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === DependentType);
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverApproved : allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverApproved : DependentType === "GOVT" ? allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         TagApproverApproverApprDashboard: filteredData
@@ -2390,7 +2025,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       const { allDashboardDataTagApproverRejected, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverRejected : allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === DependentType);
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverRejected : allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverRejected : DependentType === "GOVT" ? allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         TagApproverApproverRejectDashboard: filteredData
@@ -2404,7 +2040,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataHR2Pending, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataHR2Pending : allDashboardDataHR2Pending.filter((item) => item.EmployeeType === DependentType);
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR2Pending : allDashboardDataHR2Pending.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataHR2Pending : DependentType === "GOVT" ? allDashboardDataHR2Pending.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR2Pending.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         HR2ApprPendingDashboard: filteredData
@@ -2418,7 +2055,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataTagApproverPending, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverPending : allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === DependentType);
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverPending : allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverPending : DependentType === "GOVT" ? allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         TagApproverApprPendingDashboard: filteredData
@@ -2427,16 +2065,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     });
   };
 
-
-
   handleDropdownChangeDashHR1Approved = (event, option) => {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
 
       const { allDashboardDataHR1Approved, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataHR1Approved : allDashboardDataHR1Approved.filter((item) => item.EmployeeType === DependentType);
-
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR1Approved : allDashboardDataHR1Approved.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataHR1Approved : DependentType === "GOVT" ? allDashboardDataHR1Approved.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR1Approved.filter((item) => item.EmployeeType === DependentType);
       this.setState({
         HR1ApproverApprDashboard: filteredData
       });
@@ -2449,8 +2085,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataHR1Rejected, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataHR1Rejected : allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === DependentType);
-
+      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR1Rejected : allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataHR1Rejected : DependentType === "GOVT" ? allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === DependentType);
       this.setState({
         HR1ApproverRejectDashboard: filteredData
       });
@@ -2463,7 +2099,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataHR1Pending, DependentType } = this.state;
 
-      const filteredData = DependentType === "ALL" ? allDashboardDataHR1Pending : allDashboardDataHR1Pending.filter((item) => item.EmployeeType === DependentType);
+      ///  const filteredData = DependentType === "ALL" ? allDashboardDataHR1Pending : allDashboardDataHR1Pending.filter((item) => item.EmployeeType === DependentType);
+      const filteredData = DependentType === "ALL" ? allDashboardDataHR1Pending : DependentType === "GOVT" ? allDashboardDataHR1Pending.filter((item) => item.EmployeeType === 'PERMANENT' && (item.EmployeeDesignation == 'Managing Director (MD)' || item.EmployeeDesignation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR1Pending.filter((item) => item.EmployeeType === DependentType);
 
       this.setState({
         HR1ApprPendingDashboard: filteredData
@@ -2494,7 +2131,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       dependentitems: [],
       DependentType: null,
       dropdownOptions: updatedOptions,
-      ActualClaimAmountLable: "",  // Optional: clear limit display
+      CalculatedCHSEligibilityAmountLabel: "",  // Optional: clear limit display
       ShowLableElibleClaimAmount: false,
       TotalAmountClaimed: 0
     })
@@ -2562,7 +2199,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       alert('Pasted text contains invalid characters like <, >, &, ", \', /.')
     }
   };
-
 
   public render(): React.ReactElement<IChsModuleProps> {
     const { selectedOption } = this.state;
@@ -2809,6 +2445,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashHR1Pending}
@@ -2816,27 +2453,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                               />
                             </div>
                           </div>
-
-                          {/* <Dropdown
-                              placeHolder="Select Dependent"
-                              // disabled={true}
-                              options={[{ key: 'ALL', text: 'ALL' },{ key: 'PERMANENT', text: 'PERMANENT' }, { key: 'RETIRED', text: 'RETIRED' }]}
-                              onChanged={(e, option) => this.setState({ DependentType: e.key })}
-                              className="dropdown-style"
-                            /> */}
-
-                          {/* <Dropdown
-                              placeHolder="Select Employee Type"
-                              options={[
-                                { key: "ALL", text: "ALL" },
-                                { key: "PERMANENT", text: "PERMANENT" },
-                                { key: "RETIRED", text: "RETIRED" },
-                              ]}
-                              selectedKey={this.state.DependentType}
-                              onChanged={this.handleDropdownChangeDashHR1Pending}
-                              className="dropdown-style"
-                            /> */}
-
                         </div>
 
                         <table className="table HAD">
@@ -2904,6 +2520,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashHR1Approved}
@@ -2912,27 +2529,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             </div>
 
                           </div>
-
-                          {/* <Dropdown
-                              placeHolder="Select Dependent"
-                              // disabled={true}
-                              options={[{ key: 'ALL', text: 'ALL' },{ key: 'PERMANENT', text: 'PERMANENT' }, { key: 'RETIRED', text: 'RETIRED' }]}
-                              onChanged={(e, option) => this.setState({ DependentType: e.key })}
-                              className="dropdown-style"
-                            /> */}
-
-                          {/* <Dropdown
-                              placeHolder="Select Employee Type"
-                              options={[
-                                { key: "ALL", text: "ALL" },
-                                { key: "PERMANENT", text: "PERMANENT" },
-                                { key: "RETIRED", text: "RETIRED" },
-                              ]}
-                              selectedKey={this.state.DependentType}
-                              onChanged={this.handleDropdownChangeDashHR1Approved}
-                              className="dropdown-style"
-                            /> */}
-
                         </div>
                         <table className="table ">
                           <tr>
@@ -2997,6 +2593,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashHR1Rejected}
@@ -3004,27 +2601,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                               />
                             </div>
                           </div>
-
-                          {/* <Dropdown
-                              placeHolder="Select Dependent"
-                              // disabled={true}
-                              options={[{ key: 'ALL', text: 'ALL' },{ key: 'PERMANENT', text: 'PERMANENT' }, { key: 'RETIRED', text: 'RETIRED' }]}
-                              onChanged={(e, option) => this.setState({ DependentType: e.key })}
-                              className="dropdown-style"
-                            /> */}
-
-                          {/* <Dropdown
-                              placeHolder="Select Employee Type"
-                              options={[
-                                { key: "ALL", text: "ALL" },
-                                { key: "PERMANENT", text: "PERMANENT" },
-                                { key: "RETIRED", text: "RETIRED" },
-                              ]}
-                              selectedKey={this.state.DependentType}
-                              onChanged={this.handleDropdownChangeDashHR1Rejected}
-                              className="dropdown-style"
-                            /> */}
-
                         </div>
 
                         <table className="table ">
@@ -3118,6 +2694,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashHR2Pending}
@@ -3201,6 +2778,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashHR2Approved}
@@ -3209,26 +2787,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             </div>
                           </div>
                         </div>
-                        {/* <div className="col-md-3"  style={{paddingTop:'6px'}}>
-                            <Label className="control-Label font-weight-bold">Employee Type </Label>
-
-
-                            <Dropdown
-                              placeHolder="Select Employee Type"
-                              options={[
-                                { key: "ALL", text: "ALL" },
-                                { key: "PERMANENT", text: "PERMANENT" },
-                                { key: "RETIRED", text: "RETIRED" },
-                              ]}
-                              selectedKey={this.state.DependentType}
-                              onChanged={this.handleDropdownChangeDashHR2Approved}
-                              className="dropdown-style"
-                            />
-
-                          </div> */}
-
-
-
 
                         <table className="table ">
                           <tr>
@@ -3285,6 +2843,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashHR2Rejected}
@@ -3389,6 +2948,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashTagApproverPending}
@@ -3472,6 +3032,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashTagApproverApproved}
@@ -3480,27 +3041,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             </div>
                           </div>
                         </div>
-                        {/* <div className="col-md-3"  style={{paddingTop:'6px'}}>
-          <Label className="control-Label font-weight-bold">Employee Type </Label>
-
-
-          <Dropdown
-            placeHolder="Select Employee Type"
-            options={[
-              { key: "ALL", text: "ALL" },
-              { key: "PERMANENT", text: "PERMANENT" },
-              { key: "RETIRED", text: "RETIRED" },
-            ]}
-            selectedKey={this.state.DependentType}
-            onChanged={this.handleDropdownChangeDashHR2Approved}
-            className="dropdown-style"
-          />
-
-        </div> */}
-
-
-
-
                         <table className="table ">
                           <tr>
                             <th>View</th>
@@ -3556,6 +3096,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   { key: "ALL", text: "ALL" },
                                   { key: "PERMANENT", text: "PERMANENT" },
                                   { key: "RETIRED", text: "RETIRED" },
+                                  { key: "GOVT", text: "GOVT(Wholetime Director)" }
                                 ]}
                                 selectedKey={this.state.DependentType}
                                 onChanged={this.handleDropdownChangeDashTagApproverRejected}
@@ -3634,13 +3175,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
         >
-
-
           <div className="card card-body">
             <div className="panel panel-default">
               <div className='panel-body'>
                 <div className="row form-group" >
-
                   <div className="col-sm-2" >
                     <Label className="control-Label font-weight-bold">Financial Year:
                     </Label>
@@ -3662,7 +3200,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         if (e.key === "Yes") {
                           this.setState({
                             OnBehalf: e.key, DependentType: "",
-                            ActualClaimAmountLable: "", showhideEmployeeNameLab: true
+                            CalculatedCHSEligibilityAmountLabel: "", showhideEmployeeNameLab: true
                           });
                           this.getAllEmployee();
                         }
@@ -3670,7 +3208,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           this.getEmployee();
                           this.setState({
                             OnBehalf: e.key, DependentType: "",
-                            ActualClaimAmountLable: "", showhideEmployeeNameLab: false
+                            CalculatedCHSEligibilityAmountLabel: "", showhideEmployeeNameLab: false
                           });
                         }
                       }}
@@ -3771,11 +3309,11 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                     <Label className="control-Label ">{this.state.Age}</Label>
                   </div>
 
-                  <div className="col-sm-2" style={{ display: isMDorDMD ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
                   <div className="col-sm-2 d-flex align-items-center justify-content-between"
-                    style={{ display: isMDorDMD ? "none" : "flex" }}>
+                    style={{ display: "flex" }}>
                     <Label className="control-Label ">
                       {this.state.Limit}
                     </Label>
@@ -3789,13 +3327,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   <div className="col-sm-2">
                     <Dropdown
                       placeHolder="Select Dependent"
-                      ////   options={[{ key: 'Self', text: 'Self' }, { key: 'Spouse', text: 'Spouse' }]} ////AP 2/7/25
                       options={this.state.dropdownOptions}
                       selectedKey={this.state.DependentType}
-                      onChanged={(e, options) => {
-                        this.EligibleClaimAmount(e.key);
-                      }}
                       className="dropdown-style"
+                      onChanged={(e, options) => {
+                        this.ddlDependentTypeChange(e.key);
+                      }}
                     />
                   </div>
                   <div className="col-sm-2" >
@@ -3808,14 +3345,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       onChanged={(e: any) => this.handleInputChangeadd(event)}></TextField>
                   </div>
                   <div
-                    className="col-sm-2" style={{ display: isMDorDMD ? "none" : "block" }}>
-                    <Label className="control-Label font-weight-bold">CHS Eligibility Limit</Label>
+                    className="col-sm-2" style={{ display: "block" }}>
+                    <Label className="control-Label font-weight-bold">Calculated CHS Eligibility</Label>
                   </div>
                   <div
                     className="col-sm-2 d-flex align-items-center justify-content-between"
-                    style={{ display: isMDorDMD ? "none" : "flex" }}>
-                    <Label className="control-Label " style={{ display: isMDorDMD ? "none" : "block" }}>
-                      {this.state.ActualClaimAmountLable}
+                    style={{ display: "flex" }}>
+                    <Label className="control-Label " style={{ display: "block" }}>
+                      {this.state.CalculatedCHSEligibilityAmountLabel}
                     </Label>
                   </div>
                   <PrimaryButton text="Add" onClick={this.handleAdd} />
@@ -3829,7 +3366,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMD ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -3838,7 +3375,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMD ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                               <td>
                                 <button className="btn btn-danger btn-sm" onClick={() => this.handleDelete(index)}>
                                   Delete
@@ -3851,7 +3388,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.TotalAmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMD ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSEligibilityAmount}</td>
                             <td colSpan={1}></td>
                           </tr>
                         </tfoot>
@@ -4061,10 +3598,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
+                  <div className="col-sm-2" style={{ display: "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4077,7 +3614,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4085,7 +3622,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4093,7 +3630,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSApproverView.CHSEligibilityAmount}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4267,10 +3804,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
+                  <div className="col-sm-2" style={{ display: "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4283,7 +3820,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4291,7 +3828,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4299,7 +3836,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSApproverView.CHSEligibilityAmount}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4506,10 +4043,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
+                  <div className="col-sm-2" style={{ display: "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4522,7 +4059,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4530,7 +4067,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4538,7 +4075,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSApproverView.CHSEligibilityAmount}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4731,10 +4268,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
+                  <div className="col-sm-2" style={{ display: "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4747,7 +4284,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4755,7 +4292,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4763,7 +4300,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSApproverView.CHSEligibilityAmount}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -4966,10 +4503,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
+                  <div className="col-sm-2" style={{ display: "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -4982,7 +4519,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4990,7 +4527,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4998,7 +4535,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSApproverView.CHSEligibilityAmount}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -5215,10 +4752,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
                 <div className="row form-group">
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "block" }}>
+                  <div className="col-sm-2" style={{ display: "block" }}>
                     <Label className="control-Label font-weight-bold">CHS Limit</Label>
                   </div>
-                  <div className="col-sm-2" style={{ display: isMDorDMDApprover ? "none" : "flex" }}>
+                  <div className="col-sm-2" style={{ display: "flex" }}>
                     <Label className="control-Label ">{this.state.CHSApproverView.Limit}</Label>
                   </div>
                 </div>
@@ -5231,7 +4768,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <th>Dependent Type</th>
                             <th>Amount Claimed</th>
-                            <th style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>CHS Eligiblity Limit</th>
+                            <th style={{ display: "table-cell" }}>Calculated CHS Eligibility</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -5239,7 +4776,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <tr key={index}>
                               <td>{item.DependentType}</td>
                               <td>{item.AmountClaimed}</td>
-                              <td style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}>{item.ActualClaimAmountLable}</td>
+                              <td style={{ display: "table-cell" }}>{item.CalculatedCHSEligibilityAmountLabel}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -5247,7 +4784,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                           <tr>
                             <td colSpan={1}><strong>Total</strong></td>
                             <td colSpan={1}>{this.state.CHSApproverView.AmountClaimed}</td>
-                            <td colSpan={1} style={{ display: isMDorDMDApprover ? "none" : "table-cell" }}></td>
+                            <td colSpan={1} style={{ display: "table-cell" }}>{this.state.CHSApproverView.CHSEligibilityAmount}</td>
                           </tr>
                         </tfoot>
                       </table>

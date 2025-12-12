@@ -354,7 +354,8 @@ export default function EmployeeOps() {
                         DateofBirth: item.DateofBirth !== undefined && item.DateofBirth !== null ? new Date(item.DateofBirth) : null,
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                        , HRRemarkForRetired: item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -439,7 +440,8 @@ export default function EmployeeOps() {
                         DateofBirth: item.DateofBirth !== undefined && item.DateofBirth !== null ? new Date(item.DateofBirth) : null,
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                        , HRRemarkForRetired: item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -517,7 +519,8 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                        , HRRemarkForRetired: item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -596,7 +599,8 @@ export default function EmployeeOps() {
 
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                        , HRRemarkForRetired: item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -677,7 +681,8 @@ export default function EmployeeOps() {
 
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : ""
-                        , HRRemarkForRetired: item.HRRemarkForRetired
+                        , HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -759,7 +764,8 @@ export default function EmployeeOps() {
                         IsSpouseEximMember: item.IsSpouseEximMember,
                         FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
 
                     });
                 });
@@ -775,7 +781,7 @@ export default function EmployeeOps() {
             , "AttachmentFiles,HR2ApproverName,HR2ApproverName,TagApproverName"
             // , `EmployeeID eq '${emplinfo.Title}' and Status eq '${status}'`
             // , `Status eq '${status}' and TagApproverName/Name ne '${currentUser.LoginName}' and  HR2ApproverName/Name ne '${currentUser.LoginName}'`
-          
+
             , `Status eq '${status}' and HR2ApproverName/Name ne '${currentUser.LoginName}' and TagApproverName/Name ne '${currentUser.LoginName}' and  HR1ApproverName/Name eq '${currentUser.LoginName}'`
 
             , { column: 'Id', isAscending: false }, props).then(UserPending => {
@@ -840,7 +846,8 @@ export default function EmployeeOps() {
                         IsSpouseEximMember: item.IsSpouseEximMember,
                         FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -922,7 +929,8 @@ export default function EmployeeOps() {
                         IsSpouseEximMember: item.IsSpouseEximMember,
                         FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -933,7 +941,7 @@ export default function EmployeeOps() {
         let HR2Status = "Approved by HR2";
         // let FinalStatus = "Approved";
         // let FinalStatus = "Pending";
- let FinalStatus = "Approved"
+        let FinalStatus = "Approved"
         let Rejected = "Rejected"
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         return await (await spCrudOps).getData("HealthCheckupService"
@@ -1003,7 +1011,8 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -1083,7 +1092,8 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -1166,7 +1176,8 @@ export default function EmployeeOps() {
                         IsSpouseEximMember: item.IsSpouseEximMember,
                         FinancialYear: item.FinancialYear,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -1244,7 +1255,8 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;
@@ -1254,7 +1266,7 @@ export default function EmployeeOps() {
         //  const emplinfo = await getEmployeeMaster(props);
         const currentUser = await (await spCrudOps).currentUser(props); // Fetch the current user
         let status = "Rejected";
-        
+
         return await (await spCrudOps).getData("HealthCheckupService"
             , "*,Attachments,AttachmentFiles,HR1ApproverName/Name,HR2ApproverName/Name,TagApproverName/Name"
             , "AttachmentFiles,HR1ApproverName,HR2ApproverName,TagApproverName"
@@ -1323,7 +1335,8 @@ export default function EmployeeOps() {
                         DateofBirth: new Date(item.DateofBirth) || "",
                         AttachmentFiles: item.AttachmentFiles,
                         DependentClaimDetails: (item.DependentClaimDetails != undefined && item.DependentClaimDetails != null) ? JSON.parse(item.DependentClaimDetails) : "",
-                        HRRemarkForRetired: item.HRRemarkForRetired
+                        HRRemarkForRetired: item.HRRemarkForRetired,
+                        CHSEligibilityAmount: item.CHSEligibilityAmount
                     });
                 });
                 return brr;

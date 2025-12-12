@@ -58,7 +58,8 @@ export interface ICHSRequest {
     DependentClaimDetails:any,
     OnBehalf:any,
     HRRemarkForRetired : any,
-    FinancialYear:any
+    FinancialYear:any,
+    CHSEligibilityAmount: any
 }
 // EmployeeName
 // EmployeeType
