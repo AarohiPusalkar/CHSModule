@@ -12,7 +12,6 @@ export interface ICHSRequest {
     CNRejectedDate:any,
     DocumentLinks:any,
     Documents:any,
-    EmployeeDesignation:any,
     EmployeeGrade:any,
     EmployeeID:any,
     EmployeeName:any,
