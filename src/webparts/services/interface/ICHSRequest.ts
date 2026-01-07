@@ -58,7 +58,8 @@ export interface ICHSRequest {
     OnBehalf:any,
     HRRemarkForRetired : any,
     FinancialYear:any,
-    CHSEligibilityAmount: any
+    CHSEligibilityAmount: any,
+    TagApproverRemark: any
 }
 // EmployeeName
 // EmployeeType

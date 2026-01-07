@@ -1,21 +1,12 @@
 import * as React from 'react';
-import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 import styles from '../ChsModule.module.scss'
 import * as moment from 'moment'
 import { IChsModuleProps } from '../IChsModuleProps';
-import UseUtilities, { IUtilities } from '../../../services/bal/utilities';
-import Utilities from '../../../services/bal/utilities';
-import { Formik, FormikProps, ErrorMessage, Field } from 'formik';
-import * as yup from 'yup';
 import { Web } from '@pnp/sp/presets/all';
 import { BaseButton, Button, Checkbox, FontWeights, IPersonaProps } from 'office-ui-fabric-react';
-import { Link, useHistory } from 'react-router-dom';
-import useSPCRUD, { ISPCRUD } from '../../../services/bal/spcrud';
-import SPCRUD from '../../../services/bal/spcrud';
+import useSPCRUD from '../../../services/bal/spcrud';
 import EmployeeOps from '../../../services/bal/EmployeeMaster';
 import { IEmployeeMaster } from '../../../services/interface/IEmployeeMaster';
-import { ICHSRequest } from '../../../services/interface/ICHSRequest';
-import { keys } from '@microsoft/sp-lodash-subset';
 import { IEmployeeCHSLimitMaster } from '../../../services/interface/IEmployeeCHSLimitMaster';
 import EmployeeCHSLimitMasterOps from '../../../services/bal/EmployeeCHSLimitMaster';
 import { Icon, DefaultButton, Dialog, DialogFooter, DialogType, Dropdown, IDropdownOption, PrimaryButton, IDropdown, } from 'office-ui-fabric-react';
@@ -23,11 +14,6 @@ import { Pivot, PivotItem, IPivotItemProps, PivotLinkSize, PivotLinkFormat } fro
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { SPComponentLoader } from '@microsoft/sp-loader';
-import { escape } from '@microsoft/sp-lodash-subset';
-import { Items, sp } from 'sp-pnp-js';
-import { CurrentUser } from 'sp-pnp-js/lib/sharepoint/siteusers';
-import Swal from "sweetalert2";
-// import Select from "react-select";
 import Select from 'react-select-plus';
 import 'react-select-plus/dist/react-select-plus.css';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
@@ -38,7 +24,6 @@ import '../../assets/CHSCretaionstyle.scss';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
-// let CurrentFinancialYear;
 export interface ISelectState {
   selectedOption?: string;
 }
@@ -50,22 +35,23 @@ const onbehalfoption: IDropdownOption[] = [
 
 export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
+  private readonly ADMIN_ONBEHALF_DESIGNATIONS: string[] = [
+    "Administrative Officer (AO)",
+    "Administrative Manager (AM)",
+    "Chief Administrative Manager (CAM)",
+    "Sr. Administrative Manager (SAM)",
+    "Sr. Administrative Officer (SAO)"
+  ];
+
   constructor(props: any) {
     super(props);
 
     this.state = {
-      ////activeHRTab: localStorage.getItem("activeHRTab") || "tab1",
       activeTab: "Pending", // Set the initial active tab here
       dependentRowFiles: {},
       dependentDocsByType: {},
       GroupId: "",
       AllEmployeeCollObj: [],
-      // allDashboardData:[],
-      // NoteTypeId: "",
-      // FinancialYearColl: [],
-      // FinancialYearId: "",
-      // Subject: "",
-      // isMultiGrp: false,
       selectedOptionCHBx: null,
       isSubmitting: false,
       isApproving: false,
@@ -104,7 +90,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       CHSEligibilityAmount: 0,
       dependentitems: [],
       dropdownOptions: [{ key: 'Self', text: 'Self' }, { key: 'Spouse', text: 'Spouse' }],
-      ////dropdownOptions: this.getDependentOptionsByDesignation(),
       allDashboardData: [],
 
       allDashboardDataHR1Pending: [],
@@ -129,9 +114,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       allDashboardData2: [],
 
-      // HR2ApproverApprDashboard: [], // Original data
       filteredDashboard: [], // Filtered data for rendering
-      // PerticularMaster: [],
       isDialogVisible: false,
       isDialogGH: false,
       isDialogHR1: false,
@@ -147,28 +130,11 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       ExpenseDetailsAlert: false,
       searchValue: "",
       filteredEmployees: [],
-      // Approver: "",
-      // PaymentType: "NEFT",
-      // AccountNo: "",
-      // IFSCCode: "",
-      // ClaimFor: "Self",
-      // VendorDetails: "",
       EmployeeID: '',
       EmployeeIDId: '',
       DesignationId: '',
       CompanyEmail: '',
-
-      // GradeId: '',
-      // CurrentOfficeLocationId: '',
-      // EmployeeSubGroupId: '',
       GHStatus: '',
-      // Role: '',
-      // ApproverId: '',
-      // Level2Id: '',
-      // Level1Id: '',
-      // CashApproverId: '',
-      // PettcashDetailsColl: [],
-      // TotalValue: "",
       file: null,
       reqID: '',
       isClearable: true,
@@ -177,12 +143,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
 
       filteredOptions: [],
-      // filteredOptions: [],
       selectedId: null,
       isDropdownOpen: false, //  Track dropdown state
-      // searchValue: "",
-      // filteredOptions: this.state.AllEmployeeCollObj,
       activeHR1Tab: 'Pending',
+      activeHR2Tab: 'Pending',
       activeHRTab: 'Pending',
       activeTagApproverTab: 'Pending',
 
@@ -191,9 +155,16 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       selectedOuterTab: '',
       CurrentFinancialYear: this.getFinancialYear(),
 
-      isOnBehalfandRetired: false
+      isOnBehalfandRetired: false,
+
+      // --- Admin On Behalf (AO/AM/CAM/SAM/SAO) ---
+      isAdminOnBehalfUser: false,
+      EmployeeSubGroupIds: [],
+      activeOnBehalfDashTab: localStorage.getItem("activeOnBehalfDashTab") || "Pending",
+      OnBehalfDashboard: [],
+      OnBehalfApprovedDashboard: [],
+      OnBehalfRejectedDashboard: []
     };
-    // this.getSelectedEmployeeDetail=this.getSelectedEmployeeDetail.bind(this);  
   }
 
   async componentDidMount() {
@@ -224,9 +195,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       const pivotTabParam = urlParams.get("ptab") || "User";
       const ishr1 = await this.checkUserInGroupsForHR1TabNav(['HR1_Group'])
       const ishr2 = await this.checkUserInGroupsForHR2TabNav(['HR2_Group'])
-      const isTagApprover = await this.checkUserInGroupsForTagTabNav(['TagApprover'])
-
-
+      ///const isTagApprover = await this.checkUserInGroupsForTagTabNav(['TagApprover'])
+      const isTagApprover = await this.checkUserInGroupsForTagTabNav(['TADA_TAGUsers'])
 
       switch (pivotTabParam) {
         case "HR1":
@@ -309,6 +279,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     await this.UserApprovedDashboards();
     await this.UserRejectedDashboards();
     await this.UserPendingDashboard();
+
+
     await this.HR1ApprovePendingDashboard();
     await this.HR1ApproveApprovedDashboards();
     await this.HR1ApproveRejectedDashboards();
@@ -324,11 +296,17 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     await this.checkUserInGroups(["HR1_Group", "HR2_Group"]);
     await this.checkUserInGroupsForHR1Tab(["HR1_Group"]);
     await this.checkUserInGroupsForHR2Tab(["HR2_Group"]);
-    await this.checkUserInGroupsForTagApproverTab(["TagApprover"]);
+    await this.checkUserInGroupsForTagApproverTab(["TADA_TAGUsers"]);
 
     await this.getEmployee();
-    ///// await this.GetEmployeelimit(); Commented by AP 27 Nov 2025
-    this.setState({ dropdownOptions: this.getDependentOptionsByDesignation() })
+
+    if (this.state.isAdminOnBehalfUser) {
+      await this.OnBehalfApprovedDashboards();
+      await this.OnBehalfRejectedDashboards();
+      await this.OnBehalfPendingDashboard();
+    }
+
+    this.setState({ dropdownOptions: this.getDependentOptionsByDesignation() });
   }
 
   public getFinancialYear() {
@@ -414,11 +392,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
   handleOuterTabClick = (tabName) => {
     this.setState({
-      selectedOuterTab: tabName,
-      // activeHRdashTab: 'Pending'
-      // activeHRTab: 'Pending',
-      // activeHR1Tab: 'Pending',
-      // activeHR2Tab: 'Pending'
+      selectedOuterTab: tabName
     });
   }
 
@@ -485,7 +459,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   public async checkUserInGroupsForTagTabNav(groupsToCheck: string[]): Promise<boolean> {
     try {
       const spCrudObj = await useSPCRUD();
-      const userGroups = await spCrudObj.currentUserGroup(this.props);
+      const userGroups = await spCrudObj.currentUserGroupAnotherSiteCollection(this.props);
 
       if (!userGroups || userGroups.length === 0) {
         console.log(" User is not part of any SharePoint group.");
@@ -625,16 +599,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       let limitData: IEmployeeCHSLimitMaster[] = await this.GetEmployeelimit();
       let matchedLimit = limitData.filter((e) => e.Scale.Title == employeeData.Scale && e.Designation.Title == employeeData.DesignationTitle && e.EmployeeType == employeeData.EmployeeType);
 
-      debugger;
       let LIMIT = "";
-      /* if (employeeData.DesignationTitle == "Managing Director (MD)" ||
-         employeeData.DesignationTitle == "Deputy Managing Director (DMD)") {
-         LIMIT = "1000000";
-       }
-       else {
-         LIMIT = matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : ""
-       }*/
       LIMIT = matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : "";
+
+      const subGroupIds = this.parseMultiLookupIds(employeeData.SubGroupId || employeeData.SubGroup);
 
       this.setState({
         EmployeeInfodb: employeeData,
@@ -643,11 +611,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         EmployeeIDId: employeeData.Id,
         DependentType: "",
         CalculatedCHSEligibilityAmountLabel: "",
-        // Approver: employeeData.LeaveLevel2.Title,
-        // ApproverId: employeeData.LeaveLevel2Id,
-        // Level2Id: employeeData.LeaveLevel2Id,
-        // AccountNo: employeeData.AccountNo,
-        // IFSCCode: employeeData.IFSCCode,
         CompanyEmail: employeeData.CompanyEmail,
 
         EmployeeID: employeeData.EmployeeId,
@@ -656,14 +619,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         DateofBirth: employeeData.DateofBirth,
         Scale: employeeData.Scale,
         Age: parseInt(employeeData.Age),
-        // EmpType: employeeData.EmployeeType,
         EmployeeType: employeeData.EmployeeType,
-
-        Limit: LIMIT,
-        // GradeId: employeeData.GradeId,
-        // CurrentOfficeLocationId: employeeData.CurrentOfficeLocationId,
-        // EmployeeSubGroupId: employeeData.SubGroupId,
-        // Role: employeeData.Role
+        isAdminOnBehalfUser: this.ADMIN_ONBEHALF_DESIGNATIONS.indexOf(employeeData.DesignationTitle) !== -1,
+        EmployeeSubGroupIds: subGroupIds,
+        Limit: LIMIT
       });
       return employeeData;
     });
@@ -692,27 +651,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           );
 
           let LIMIT = "";
-          /* if (selectedEmp.Designation.Title == "Managing Director (MD)" ||
-             selectedEmp.Designation.Title == "Deputy Managing Director (DMD)") {
-             LIMIT = "1000000";
-           }
-           else {
-             LIMIT = matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : ""
-           }*/
           LIMIT = matchedLimit.length > 0 && matchedLimit !== undefined ? matchedLimit[0].Limit : ""
 
           this.setState({
             EmployeeName: selectedEmp.EmployeeName,
-            // EmployeeIDId: selectedEmp.Id,
-            // Approver: selectedEmp.LeaveLevel2.Title,
-            // ApproverId: selectedEmp.LeaveLevel2Id,
-            // Level2Id: selectedEmp.LeaveLevel2Id,
-            // AccountNo: selectedEmp.AccountNo,
-            // IFSCCode: selectedEmp.IFSCCode,
             isDropdownOpen: false, //  Close dropdown on selection
             CompanyEmail: selectedEmp.CompanyEmail,
-
-            // this.setState({ EmployeeID: e.key });
             EmployeeID: selectedEmp.Title,
             DesignationId: selectedEmp.DesignationId,
             DesignationTitle: selectedEmp.Designation.Title,
@@ -726,12 +670,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             DependentType: "",
             CalculatedCHSEligibilityAmountLabel: "",
             selectedOption: e,
-            //   ExpenseDetails.Amount:""
-            // GradeId: selectedEmp.GradeId,
-            // CurrentOfficeLocationId: selectedEmp.CurrentOfficeLocationId,
-            // EmployeeSubGroupId: selectedEmp.SubGroupId,
-            // Role: selectedEmp.Role,
-            ////Limit: matchedLimit.length > 0 ? matchedLimit[0].Limit : "",
             Limit: LIMIT,
           });
         }
@@ -757,6 +695,68 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       return results;
     });
   };
+
+  private parseMultiLookupIds = (val: any): number[] => {
+    // Case 1: already an array of numbers
+    if (Array.isArray(val)) {
+      return val
+        .map((x) => parseInt(x, 10))
+        .filter((n) => !isNaN(n));
+    }
+
+    // Case 2: array of objects with Id
+    if (Array.isArray(val) && val.length && val[0] && val[0].Id) {
+      return val.map((x) => parseInt(x.Id, 10)).filter((n) => !isNaN(n));
+    }
+
+    // Case 3: SharePoint multi-lookup string like "1;#SG1;#3;#SG3"
+    if (typeof val === "string") {
+      return (val || "")
+        .split(";#")
+        .filter((x) => /^\d+$/.test(x))
+        .map((x) => parseInt(x, 10))
+        .filter((n) => !isNaN(n));
+    }
+
+    // Case 4: single number
+    if (typeof val === "number") return [val];
+
+    // Default
+    return [];
+  };
+
+
+  private loadAdminOnBehalfEmployees = async (subGroupIds: number[]): Promise<void> => {
+    if (!subGroupIds || !subGroupIds.length) {
+      this.setState({ AllEmployeeCollObj: [], filteredOptions: [], EmployeeInfodb: [] });
+      return;
+    }
+
+    const sgFilter = subGroupIds.map((id) => `SubGroup/Id eq ${id}`).join(" or ");
+    const filter =
+      `(${sgFilter}) and ` +
+      `(Designation/Title eq 'Managing Director (MD)' or Designation/Title eq 'Deputy Managing Director (DMD)') and (EmployeeType/Title eq 'PERMANENT')`;
+
+    const results = await EmployeeOps().getEmployeeMasterId(
+      filter,
+      { column: "EmployeeName", isAscending: true },
+      this.props
+    );
+
+    const options = (results || []).map((emp: any) => ({
+      key: emp.Id.toString(),
+      text: emp.EmployeeName,
+      label: emp.EmployeeName,
+      value: emp.EmployeeName
+    }));
+
+    this.setState({
+      EmployeeInfodb: results,
+      AllEmployeeCollObj: options,
+      filteredOptions: options
+    });
+  };
+
   public _getPeoplePickerItems = (item: IPersonaProps[]) => {
     console.log(item);
   }
@@ -781,6 +781,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     });
   }
   public CreateRequest = () => {
+
     this.setState({
       IsSpouseEximEmployee: false,
       isDialogVisible: true,
@@ -790,7 +791,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       AmountClaimed: "",
       CalculatedCHSEligibilityAmountLabel: ""
     })
-
   }
 
   private exportToExcel = async (): Promise<void> => {
@@ -821,10 +821,24 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     document.getElementById(pageName).style.display = "block";
     elmnt.style.backgroundColor = color;
   }
+
   public handleInputChangeadd = (e) => {
     const value = e.target.value;
+
+
+
     switch (e.target.name) {
       case "ExpenseDetails.Amount":
+
+        //working
+        const LIMIT = parseFloat(this.state.Limit) || 0;
+        if (this.state.DesignationTitle != "Managing Director (MD)" &&
+          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+          if (LIMIT === 0) {
+            return this.fail("Please Map Limit!");
+          }
+        }
+
         this.setState({
           ExpenseDetails: {
             ...this.state.ExpenseDetails,
@@ -859,7 +873,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         });
         break;
-
       case "ExpenseDetails.TagApproverRemarks":
         this.setState({
           ExpenseDetails: {
@@ -868,8 +881,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         });
         break;
-
-
       case "ExpenseDetails.FinalAmount":
         this.setState({
           ExpenseDetails: {
@@ -887,11 +898,17 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         });
 
+        //working
+        let hr1validAmount = 0;
+        if ((this.state.CHSApproverView.Designation == "Managing Director (MD)" ||
+          this.state.CHSApproverView.Designation == "Deputy Managing Director (DMD)")) {
+          hr1validAmount = this.state.CHSApproverView.AmountClaimed;
+        }
+        else {
+          hr1validAmount = this.state.CHSApproverView.CHSEligibilityAmount;
+        }
         //if (value > this.state.CHSApproverView.EligibilityLimit) {
-        if (value > this.state.CHSApproverView.AmountClaimed) {
-
-
-
+        if (value > hr1validAmount) { //30 Dec
           this.setState({
             ExpenseDetailsAlert: true
           });
@@ -915,19 +932,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         });
 
 
-
-
-        // if (value > this.state.CHSApproverView.EligibilityLimit) {
-        if (value > this.state.CHSApproverView.AmountClaimed) {
-
-
+        let hr2validAmount = 0;
+        if ((this.state.CHSApproverView.Designation == "Managing Director (MD)" ||
+          this.state.CHSApproverView.Designation == "Deputy Managing Director (DMD)")) {
+          hr2validAmount = this.state.CHSApproverView.AmountClaimed;
+        }
+        else {
+          hr2validAmount = this.state.CHSApproverView.CHSEligibilityAmount;
+        }
+        if (value > hr2validAmount) { //30 Dec
           this.setState({
             ExpenseDetailsAlert: true
           });
         }
-        else
-        // if(+e.target.value <= parseFloat(this.state.CHSApproverView.EligibilityLimit))
-        {
+        else {
           this.setState({
             ExpenseDetailsAlert: false
           });
@@ -938,9 +956,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         break;
     }
   }
-  // _handleFileChange = (event) => {
-  //   this.setState({ files: event.target.files });
-  // };
+
   _handleFileChange = (event) => {
     const files = event.target.files;
     const validFiles = [];
@@ -967,6 +983,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     // Set only valid files in state
     this.setState({ files: validFiles });
   };
+
   handleChange = (e) => {
     const value = e.target.value;
     console.log('Input value:', value);
@@ -977,21 +994,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   };
 
   private getDependentOptionsByDesignation = () => {
-    const { DesignationTitle } = this.state;
-
-    // MD/DMD
-    if (
-      DesignationTitle === "Managing Director (MD)" ||
-      DesignationTitle === "Deputy Managing Director (DMD)"
-    ) {
-      return [
-        { key: 'Self', text: 'Self' },
-        { key: 'Spouse', text: 'Spouse' },
-        { key: 'Child', text: 'Child' }
-      ];
-    }
-
-    // Default (existing logic)
     return [
       { key: 'Self', text: 'Self' },
       { key: 'Spouse', text: 'Spouse' }
@@ -1001,18 +1003,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   public ddlDependentTypeChange = (e) => {
 
     const isMDorDMD =
-      this.state.DesignationTitle === "Managing Director (MD)" ||
-      this.state.DesignationTitle === "Deputy Managing Director (DMD)";
+      (this.state.DesignationTitle === "Managing Director (MD)" ||
+        this.state.DesignationTitle === "Deputy Managing Director (DMD)");
 
-    if (e === "Child" && isMDorDMD) {
-      this.setState({
-        DependentType: e,
-        IsSpouseEximEmployee: false,
-        dropdownOptions: this.getDependentOptionsByDesignation(),
-        CalculatedCHSEligibilityAmountLabel: "",
-        ShowLableElibleClaimAmount: false
-      });
-      return;
+    const LIMIT = parseFloat(this.state.Limit) || 0;
+    if ((this.state.DesignationTitle != "Managing Director (MD)" &&
+      this.state.DesignationTitle != "Deputy Managing Director (DMD)")) {
+      if (LIMIT === 0) {
+        return this.fail("Please Map Limit!");
+      }
     }
 
     if (e === "Self") {
@@ -1053,25 +1052,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   };
 
   public EligibleClaimAmount = (e, amountClaimed) => {
-    debugger;
     const isMDorDMD =
-      this.state.DesignationTitle === "Managing Director (MD)" ||
-      this.state.DesignationTitle === "Deputy Managing Director (DMD)";
+      (this.state.DesignationTitle === "Managing Director (MD)" ||
+        this.state.DesignationTitle === "Deputy Managing Director (DMD)");
 
     if (this.state.selectedOptionCHBx != null) {
       let CalculatedCHSEligibilityAmountLabel;
       const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
       const scaleValue = this.state.Scale;
-      if (this.state.EmployeeType.Title != 'RETIRED') {
+      if (this.state.EmployeeType != 'RETIRED') {
         if (this.state.Scale !== "GOVT") {
           const numberOnlyScale = parseFloat(scaleValue.match(/\d+$/)[0]);
           if (this.state.Age < 40 && numberOnlyScale <= 5) {
             let Scale5LIMIT = LIMIT ? LIMIT : 0;
             const Scale5LIMITSelf = (Scale5LIMIT) * 0.9;
-            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
-            //// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
-
             if (amountClaimed > LIMIT) {
               let calculatedAmountClaimed = (amountClaimed) * 0.9;
               if (calculatedAmountClaimed > LIMIT)
@@ -1084,16 +1078,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                 CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
               }
               else {
-                CalculatedCHSEligibilityAmountLabel = amountClaimed
+                /////  CalculatedCHSEligibilityAmountLabel = amountClaimed
+                CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.9;
               }
             }
 
             if (e == 'Spouse') {
-              let Scale5LIMIT = LIMIT ? LIMIT : 0;
-              const Scale5LIMITSpouse = (Scale5LIMIT) * 0.75
-              //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
-              //// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
               if (amountClaimed > LIMIT) {
                 let calculatedAmountClaimed = (amountClaimed) * 0.75;
                 if (calculatedAmountClaimed > LIMIT)
@@ -1102,23 +1092,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
               }
               else {
-                //// if (amountClaimed > Scale5LIMITSpouse) {
-                //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
                 CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.75;
-                /*  }
-                  else {
-                    CalculatedCHSEligibilityAmountLabel = amountClaimed
-                  }*/
               }
 
             }
           }
-          if (this.state.Age > 40 && numberOnlyScale <= 5) {
+          if (this.state.Age >= 40 && numberOnlyScale <= 5) {
             let Scale5LIMIT = LIMIT ? LIMIT : 0;
             const Scale5LIMITSelf = (Scale5LIMIT) * 1;
-            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
-
-            ////CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
 
             if (amountClaimed > LIMIT) {
               let calculatedAmountClaimed = (amountClaimed) * 1;
@@ -1137,11 +1118,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             }
 
             if (e == 'Spouse') {
-              let Scale5LIMIT = LIMIT ? LIMIT : 0;
-              const Scale5LIMITSpouse = (Scale5LIMIT) * 0.75
-              ////CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
-              //// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
               if (amountClaimed > LIMIT) {
                 let calculatedAmountClaimed = (amountClaimed) * 0.75;
                 if (calculatedAmountClaimed > LIMIT)
@@ -1150,23 +1126,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
               }
               else {
-                //// if (amountClaimed > Scale5LIMITSpouse) {
-                //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpouse;
                 CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.75;
-                /*  }
-                  else {
-                    CalculatedCHSEligibilityAmountLabel = amountClaimed
-                  }*/
               }
-
-
             }
           }
           if (numberOnlyScale > 5) {
             const Scale5LIMITSelf = LIMIT ? LIMIT : 0;
-            ////CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
-            ////  CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
             if (amountClaimed > LIMIT) {
               let calculatedAmountClaimed = (amountClaimed);
               if (calculatedAmountClaimed > LIMIT)
@@ -1185,11 +1150,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
 
             if (e == 'Spouse') {
-              const Scale5LIMITSpause = LIMIT ? LIMIT : 0;
-              const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
-              ////CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
-              ////CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
               if (amountClaimed > LIMIT) {
                 let calculatedAmountClaimed = (amountClaimed) * 0.75;
                 if (calculatedAmountClaimed > LIMIT)
@@ -1198,13 +1158,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
               }
               else {
-                //// if (amountClaimed > Scale5LIMITSpause1) {
-                //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
                 CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.75;
-                /*  }
-                  else {
-                    CalculatedCHSEligibilityAmountLabel = amountClaimed
-                  }*/
               }
 
             }
@@ -1212,9 +1166,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         }
         else {
           const Scale5LIMITSelf = LIMIT ? LIMIT : 0;
-          //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
-          ////  CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
           if (amountClaimed > LIMIT) {
             let calculatedAmountClaimed = (amountClaimed);
             if (calculatedAmountClaimed > LIMIT)
@@ -1232,13 +1183,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
 
           if (e == 'Spouse') {
-            const Scale5LIMITSpause = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-            const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
-            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
-            // if (Scale5LIMITSpause1 > 20000) {
-            // CalculatedCHSEligibilityAmountLabel = "20000";
-            /////CalculatedCHSEligibilityAmountLabel = Math.min((this.state.Limit - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
             if (amountClaimed > LIMIT) {
               let calculatedAmountClaimed = (amountClaimed) * 0.75;
               if (calculatedAmountClaimed > LIMIT)
@@ -1247,13 +1191,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                 CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
             }
             else {
-              //// if (amountClaimed > Scale5LIMITSpause1) {
-              //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
               CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.75;
-              /*  }
-                else {
-                  CalculatedCHSEligibilityAmountLabel = amountClaimed
-                }*/
             }
 
 
@@ -1261,12 +1199,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           }
         }
       }
-      if (this.state.EmployeeType.Title == 'RETIRED') {
+      if (this.state.EmployeeType == 'RETIRED') {
         const Scale5LIMITSelf = LIMIT ? LIMIT : 0;
-        /// const Scale5LIMITSelf1 = (Scale5LIMITSelf) * 0.9;
-        //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf1;
-        ///// CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
         if (amountClaimed > LIMIT) {
           let calculatedAmountClaimed = (amountClaimed) * 0.9;
           if (calculatedAmountClaimed > LIMIT)
@@ -1279,19 +1213,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             CalculatedCHSEligibilityAmountLabel = Scale5LIMITSelf;
           }
           else {
-            CalculatedCHSEligibilityAmountLabel = amountClaimed
+            ////CalculatedCHSEligibilityAmountLabel = amountClaimed
+            CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.9
           }
         }
 
-
         if (e == 'Spouse') {
-          const Scale5LIMITSpause = LIMIT ? LIMIT : 0;
-          const Scale5LIMITSpause1 = (Scale5LIMITSpause) * 0.75
-          ////  CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
-          // if (CalculatedCHSEligibilityAmountLabel > 15000) {
-          // CalculatedCHSEligibilityAmountLabel = "15000"
-          ////CalculatedCHSEligibilityAmountLabel = Math.min((LIMIT - this.state.TotalAmountClaimed), CalculatedCHSEligibilityAmountLabel);
-
           if (amountClaimed > LIMIT) {
             let calculatedAmountClaimed = (amountClaimed) * 0.75;
             if (calculatedAmountClaimed > LIMIT)
@@ -1300,13 +1227,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
               CalculatedCHSEligibilityAmountLabel = calculatedAmountClaimed
           }
           else {
-            //// if (amountClaimed > Scale5LIMITSpause1) {
-            //// CalculatedCHSEligibilityAmountLabel = Scale5LIMITSpause1;
             CalculatedCHSEligibilityAmountLabel = (amountClaimed) * 0.75;
-            /*  }
-              else {
-                CalculatedCHSEligibilityAmountLabel = amountClaimed
-              }*/
           }
 
           // }
@@ -1376,20 +1297,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   public BtnSubmitRequest = async () => {
     this.setState({ isSubmitting: true });
 
+    const isMDorDMD =
+      (this.state.DesignationTitle === "Managing Director (MD)" ||
+        this.state.DesignationTitle === "Deputy Managing Director (DMD)");
+
     try {
-      // Step 1: Basic Validation
-      if (this.state.DependentType === "Spouse" && this.state.selectedOptionCHBx == null) {
+      if (this.state.DependentType === "Spouse" && this.state.selectedOptionCHBx == null && !isMDorDMD) {
         return this.fail("Please check on 'Is Spouse Exim Employee'");
       }
 
       if (!this.state.dependentitems.length) {
         return this.fail("Please Enter Claim Amount !!");
       }
-
-      /*  if (!this.state.files) {
-          return this.fail("Please Attach Files!");
-          return false;
-        } */
 
       const LIMIT = parseFloat(this.state.Limit) || 0;
       if (this.state.DesignationTitle != "Managing Director (MD)" &&
@@ -1411,14 +1330,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
       if (!allRowsHaveFile) return this.fail("Please upload 1 document for each dependent row!");
 
-      /*  if (this.state.DesignationTitle != "Managing Director (MD)" &&
-          this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
-          if (this.state.TotalAmountClaimed > LIMIT) {
-            return this.fail("Claim Amount should be less than CHS Limit!");
-          }
-        }*/
-
-      // Step 2: Check Existing Requests
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const fyStart = new Date(currentDate.getMonth() < 3 ? currentYear - 1 : currentYear, 3, 1);
@@ -1438,17 +1349,114 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           req.EmployeeID === this.state.EmployeeID
       );
 
-      const duplicateExists = hasRequestThisYear.some((req) => req.Status !== "Rejected");
-      if (duplicateExists) {
-        return this.fail("You have already submitted a request this financial year!");
-        return false;
+      var requestedTypesMap: any = {};
+      var requestedTypes: string[] = [];
+
+      for (var i = 0; i < (this.state.dependentitems || []).length; i++) {
+        var depItem = this.state.dependentitems[i];
+        var depType = depItem && depItem.DependentType
+          ? ("" + depItem.DependentType).trim()
+          : "";
+        if (depType && !requestedTypesMap[depType]) {
+          requestedTypesMap[depType] = true;
+          requestedTypes.push(depType);
+        }
       }
 
-      // Step 3: Build Request Item
+      var hasRequestedSelf = requestedTypes.indexOf("Self") !== -1;
+      var hasRequestedSpouse = requestedTypes.indexOf("Spouse") !== -1;
+
+
+      var existingHasSelf = false;
+      var existingHasSpouse = false;
+      var existingHasCombinedSelfSpouse = false;
+
+      for (var r = 0; r < hasRequestThisYear.length; r++) {
+        var existingreq = hasRequestThisYear[r];
+        if (!existingreq || existingreq.Status === "Rejected") continue;
+
+        var existingTypesMap: any = {};
+        var existingTypes: string[] = [];
+
+        // Prefer JSON rows
+        if (existingreq.DependentClaimDetails) {
+          try {
+            var parsed = JSON.parse(existingreq.DependentClaimDetails);
+            if (parsed && parsed.length) {
+              for (var j = 0; j < parsed.length; j++) {
+                var row = parsed[j];
+                var t = row && row.DependentType
+                  ? ("" + row.DependentType).trim()
+                  : "";
+                if (t && !existingTypesMap[t]) {
+                  existingTypesMap[t] = true;
+                  existingTypes.push(t);
+                }
+              }
+            }
+          } catch (e) { }
+        }
+
+        // Fallback to single DependentType
+        if (!existingTypes.length && existingreq.DependentType) {
+          existingTypes.push(existingreq.DependentType.trim());
+        }
+
+        var hasSelf = existingTypes.indexOf("Self") !== -1;
+        var hasSpouse = existingTypes.indexOf("Spouse") !== -1;
+
+        if (hasSelf) existingHasSelf = true;
+        if (hasSpouse) existingHasSpouse = true;
+        if (hasSelf && hasSpouse) existingHasCombinedSelfSpouse = true;
+      }
+
+      // Rule 1: Combined request already exists
+      if (existingHasCombinedSelfSpouse) {
+        if (hasRequestedSelf && !hasRequestedSpouse) {
+          return this.fail(
+            "A combined request for Self + Spouse is already submitted for this financial year. Separate Self request is not allowed."
+          );
+        }
+
+        if (hasRequestedSpouse && !hasRequestedSelf) {
+          return this.fail(
+            "A combined request for Self + Spouse is already submitted for this financial year. Separate Spouse request is not allowed."
+          );
+        }
+
+        if (hasRequestedSelf && hasRequestedSpouse) {
+          return this.fail(
+            "A combined request for Self + Spouse is already submitted for this financial year."
+          );
+        }
+      }
+
+      // Rule 2: Partial overlaps
+      if (hasRequestedSelf && hasRequestedSpouse) {
+        if (existingHasSelf && existingHasSpouse) {
+          return this.fail(
+            "Requests for both Self and Spouse are already submitted for this financial year."
+          );
+        }
+        if (existingHasSelf) {
+          return this.fail(
+            "A request for Self is already submitted for this financial year. Please submit only Spouse."
+          );
+        }
+        if (existingHasSpouse) {
+          return this.fail(
+            "A request for Spouse is already submitted for this financial year. Please submit only Self."
+          );
+        }
+      } else if (hasRequestedSelf && existingHasSelf) {
+        return this.fail("A request for Self is already submitted for this financial year.");
+      } else if (hasRequestedSpouse && existingHasSpouse) {
+        return this.fail("A request for Spouse is already submitted for this financial year.");
+      }
+
       const spCrudObj = await useSPCRUD();
       const { CHSRequestItem, pivotTab, dashTab } = this.buildCHSRequestItem();
 
-      // Step 4: Insert Data
       const req = await spCrudObj.insertData("HealthCheckupService", CHSRequestItem, this.props);
       this.setState({ reqID: req.data.ID });
 
@@ -1459,14 +1467,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       await this.uploadDependentRowDocs(req.data.ID);
       alert("Comprehensive Health Checkup Request Submitted Successfully!");
 
-      /* if (this.state.files && this.state.files.length) {
-         await this.uploadPRDoc("HealthCheckupService", req.data.ID, this.state.files);
-         alert("Comprehensive Health Checkup Request Submitted Successfully!");
-       } else {
-         alert("Comprehensive Health Checkup Request Submitted without attachments.");
-       }  */
-
-      // Step 5: Reset UI
       this.setState({ isSubmitting: false });
       this.closeDialog();
 
@@ -1482,24 +1482,17 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     }
   };
 
-  /**
-   * Helper: show alert and stop submission
-   */
   private fail(message: string) {
     this.setState({ isSubmitting: false });
     alert(message);
     return false;
   }
 
-  /**
-   * Helper: build request payload
-   */
   private buildCHSRequestItem() {
     let pivotTab = "User";
     let dashTab = "Pending";
     const selfItem = this.state.dependentitems.find((i) => i.DependentType === "Self");
     const spouseItem = this.state.dependentitems.find((i) => i.DependentType === "Spouse");
-    ////const actualEligibilityLimit = selfItem.CalculatedCHSEligibilityAmountLabel || spouseItem.CalculatedCHSEligibilityAmountLabel || 0;
     var actualEligibilityLimit = (selfItem && selfItem.CalculatedCHSEligibilityAmountLabel) ||
       (spouseItem && spouseItem.CalculatedCHSEligibilityAmountLabel) || 0;
     const dob = this.state.DateofBirth; // "25-6-1956"
@@ -1544,17 +1537,26 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             ? this.state.CHSEligibilityAmount
             : this.state.ExpenseDetails.Amount;
 
-        item = {
-          ...item,
-          Status: "Pending",
-          HR1Response: "Approved by HR1",
-          HR2Response: "Approved by HR2",
-          TagApproverResponse: "Pending with TagApprover",
-
-          HR1ApproverNameId: this.state.Currentuser.Id,
-          HR1ResponseDate: new Date(),
-          HRApprovedAmount: +hrApprovedAmount,
-        };
+        if (this.state.EmployeeType === "RETIRED") { //23 Dec
+          item = {
+            ...item,
+            Status: "Pending",
+            HR1Response: "Approved by HR1",
+            HR2Response: "Pending with HR2",
+            TagApproverResponse: "Pending with TagApprover",
+            HR1ApproverNameId: this.state.Currentuser.Id,
+            HR1ResponseDate: new Date(),
+          };
+        }
+        else {
+          item = {
+            ...item,
+            Status: "Pending",
+            HR1Response: "Approved by HR1",
+            HR1ApproverNameId: this.state.Currentuser.Id,
+            HR1ResponseDate: new Date(),
+          };
+        }
       }
     }
 
@@ -1569,22 +1571,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             ? this.state.CHSEligibilityAmount
             : this.state.ExpenseDetails.Amount;
 
-        item = {
-          ...item,
-          Status: "Pending",
-          HR2Response: "Approved by HR2",
-          HR1Response: "Approved by HR1",
-          TagApproverResponse: "Pending with TagApprover",
+        if (this.state.EmployeeType === "RETIRED") { //23 Dec
+          item = {
+            ...item,
+            Status: "Pending",
+            HR1Response: "Approved by HR1",
+            TagApproverResponse: "Pending with TagApprover",
 
-          HR2ApproverNameId: this.state.Currentuser.Id,
-          HR2ResponseDate: new Date(),
-          HRApprovedAmount: +hrApprovedAmount,
-        };
+            HR2ApproverNameId: this.state.Currentuser.Id,
+            HR2ResponseDate: new Date(),
+            HRApprovedAmount: +hrApprovedAmount,
+          };
+        }
       }
     }
-
-
-
     return { CHSRequestItem: item, pivotTab, dashTab };
   }
 
@@ -1685,7 +1685,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       alert('Comprehensive Health Checkup Request Approved Successfully!');
       this.setState({ isApproving: false });
       this.closeDialog()
-      //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
       window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Approved&ptab=HR2`;  // Update the URL path to your dashboard route
 
       return req;
@@ -1693,39 +1692,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   };
   public BtnApproveTagApproverRequest = async () => {
     this.setState({ isApproving: true });
-    // if (this.state.ExpenseDetails.HR2FinalAmount > this.state.CHSApproverView.EligibilityLimit) {
-    //   alert('Final Claim Amount should be less than Eligible Limit! ');
-    //   this.setState({ isApproving: false });
-    //   return false;
-    // }
-    // if (!this.state.ExpenseDetails) {
-    //   alert('Please mention Remarks ');
-    //   this.setState({ isApproving: false });
-    //   return false;
-    // }
-    // if (!this.state.ExpenseDetails) {
-    //   if (this.state.ExpenseDetails.HR2FinalAmount == 0) {
-    //     alert('Please Enter Final Amount ');
-    //     this.setState({ isApproving: false });
-    //     return false;
-    //   }
-    // }
-
-
     const spCrudObj = await useSPCRUD();
     var CHSRequestItem = {
       TagApproverNameId: this.state.Currentuser.Id,
       Status: "Approved",
       TagApproverResponse: "Approved by TagApprover",
       TagApproverResponseDate: new Date(),
-      // HRApprovedAmount: +this.state.ExpenseDetails.HR2FinalAmount,
       TagApproverRemark: this.state.ExpenseDetails.TagApproverRemarks
     };
     return await spCrudObj.updateData("HealthCheckupService", this.state.CHSApproverView.ID, CHSRequestItem, this.props).then(async (req) => {
       alert('Comprehensive Health Checkup Request Approved Successfully!');
       this.setState({ isApproving: false });
       this.closeDialog();
-      //  window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
       window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Approved&ptab=HR2`;  // Update the URL path to your dashboard route
 
       return req;
@@ -1761,7 +1739,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         alert('Comprehensive Health Checkup Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
-        //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
         window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Rejected&ptab=HR1`;  // Update the URL path to your dashboard route
 
         return req;
@@ -1798,7 +1775,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         alert('Comprehensive Health Checkup Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
-        //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
         window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Rejected&ptab=HR2`;  // Update the URL path to your dashboard route
 
         return req;
@@ -1826,7 +1802,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         alert('Comprehensive Health Checkup Request Rejected Successfully!');
         this.setState({ isRejecting: false });
         this.closeDialog();
-        //window.location.href = "https://sharepointwebssse.eximbankindia.in/sites/hrm/SitePages/CHSModule.aspx";  // Update the URL path to your dashboard route
         window.location.href = `${ENV_CONFIG.siteUrl}/SitePages/CHSModule.aspx?dashtab=Rejected&ptab=TagApprover`;  // Update the URL path to your dashboard route
 
         return req;
@@ -1835,34 +1810,14 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     }
 
   };
-  /* async uploadPRDoc(ListName, itemId, files) {
-     const spCrudObj = await useSPCRUD();
-     for (let i = 0; i < files.length; i++) {
-       let file = files[i];
-       let fileName = file.name;
-       try {
-         const brPlanFile = await spCrudObj.addAttchmentInList(
-           file,
-           ListName,
-           itemId,
-           fileName,
-           this.props
-         );
-         console.log(`Uploaded: ${fileName}`, brPlanFile);
-       } catch (error) {
-         console.log(`Error uploading ${fileName}:`, error);
-       }
-     }
-   }  */
+ 
   public UserPendingDashboard = async () => {
-    debugger;
     return await EmployeeOps().getUserDashboard(this.props).then(UserPending => {
       this.setState({ UserDashboard: UserPending });
       return UserPending;
     });
   };
   public UserApprovedDashboards = async () => {
-    debugger;
     return await EmployeeOps().getUserApprovedDashboard(this.props).then(UserApproved => {
       this.setState({ userApprovedDashboard: UserApproved });
       return UserApproved;
@@ -1874,18 +1829,34 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       return UserRejected;
     });
   };
+
+  // --- On Behalf Dashboards (Admin roles only) ---
+  public OnBehalfPendingDashboard = async () => {
+    const data = await EmployeeOps().getOnBehalfPendingDashboard(this.props);
+    this.setState({ OnBehalfDashboard: data });
+  };
+
+  public OnBehalfApprovedDashboards = async () => {
+    const data = await EmployeeOps().getOnBehalfApprovedDashboard(this.props);
+    this.setState({ OnBehalfApprovedDashboard: data });
+  };
+
+  public OnBehalfRejectedDashboards = async () => {
+    const data = await EmployeeOps().getOnBehalfRejectedDashboard(this.props);
+    this.setState({ OnBehalfRejectedDashboard: data });
+  };
+
+  public openOnBehalfInnerTab = (tabName: string): void => {
+    localStorage.setItem("activeOnBehalfDashTab", tabName);
+    this.setState({ activeOnBehalfDashTab: tabName });
+  };
+
   public HR1ApprovePendingDashboard = async () => {
     return await EmployeeOps().HR1getApproveDashboard(this.props).then(UserPending => {
       this.setState({ HR1ApprPendingDashboard: UserPending, allDashboardDataHR1Pending: UserPending });
       return UserPending;
     });
   };
-
-  // allDashboardDataHR1Pending:[],
-
-  // allDashboardDataHR1Rejected:[],
-
-  // allDashboardDataHR1Approved:[],
 
   public HR1ApproveApprovedDashboards = async () => {
     return await EmployeeOps().HR1getApproveApprovedDashboard(this.props).then(UserApproved => {
@@ -2000,7 +1971,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     this.setState({
       CHSApproverView: ApproverViewReqItems,
       isDialogViewHR2: true,
-      dependentitems: ApproverViewReqItems.DependentClaimDetails
+      dependentitems: ApproverViewReqItems.DependentClaimDetails,
     },
       async () => {
         await this.loadDependentDocs(ApproverViewReqItems.ID);
@@ -2011,6 +1982,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     console.log(Items);
     const ApproverViewReqItems = Items;
     var NewTotal = 0;
+
     this.setState({
       CHSApproverView: ApproverViewReqItems,
       isDialogTagApprover: true,
@@ -2035,10 +2007,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   }
 
   handleAdd = () => {
-    const isMDorDMD =
-      this.state.DesignationTitle === "Managing Director (MD)" ||
-      this.state.DesignationTitle === "Deputy Managing Director (DMD)";
-
     const hasSelfDependent = this.state.dependentitems.some(
       (item) => item.DependentType === "Self"
     );
@@ -2047,12 +2015,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
       (item) => item.DependentType === "Spouse"
     );
 
-    const hasChildDependent = this.state.dependentitems.some(
-      (item) => item.DependentType === "Child"
-    );
-
-
-    if (this.state.dependentitems.length < 2 && !isMDorDMD) {
+    if (this.state.dependentitems.length < 2) {
       const { DependentType, AmountClaimed, CalculatedCHSEligibilityAmountLabel, dependentitems } = this.state;
 
       if (hasSelfDependent && DependentType == "Self") {
@@ -2121,81 +2084,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         alert("Please select Dependent Type and enter Amount Claimed!");
       }
     }
-    else if (this.state.dependentitems.length < 3 && isMDorDMD) {
-      const { DependentType, AmountClaimed, CalculatedCHSEligibilityAmountLabel, dependentitems } = this.state;
-
-      if (hasSelfDependent && DependentType == "Self") {
-        alert("You have already added claim amount for Self!");
-        this.setState({
-          DependentType: "",
-          AmountClaimed: "",
-          CalculatedCHSEligibilityAmountLabel: ""
-        });
-        return false;
-      }
-      if (hasSpouseDependent && DependentType == "Spouse") {
-        alert("You have already added claim amount for Spouse!");
-        this.setState({
-          DependentType: "",
-          AmountClaimed: "",
-          CalculatedCHSEligibilityAmountLabel: ""
-        });
-        return false;
-      }
-
-      if (hasChildDependent && DependentType == "Child") {
-        alert("You have already added claim amount for Child!");
-        this.setState({
-          DependentType: "",
-          AmountClaimed: "",
-          CalculatedCHSEligibilityAmountLabel: ""
-        });
-        return false;
-      }
-
-      if (DependentType && AmountClaimed > 0) {
-
-        const LIMIT = this.state.Limit ? parseFloat(this.state.Limit) : 0;
-
-        this.setState({
-          dependentitems: [...dependentitems, { DependentType, AmountClaimed, CalculatedCHSEligibilityAmountLabel }],
-          DependentType: "",
-          AmountClaimed: "",
-          CalculatedCHSEligibilityAmountLabel: ""
-
-        }, () => {
-          const dependentTypesCSV = this.state.dependentitems
-            .map(item => item.DependentType)
-            .join(', ');
-
-          const totalClaimed = this.state.dependentitems.reduce((sum, item) => {
-            return sum + parseFloat(item.AmountClaimed || 0);
-          }, 0);
-
-          const totalClaimedCHSEligibilityAmount = this.state.dependentitems.reduce((sum, item) => {
-            return sum + parseFloat(item.CalculatedCHSEligibilityAmountLabel || 0);
-          }, 0);
-
-          this.setState({
-            TotalAmountClaimed: totalClaimed,
-            CHSEligibilityAmount: totalClaimedCHSEligibilityAmount,
-            DependentType: dependentTypesCSV
-          });
-        });
-      }
-      else {
-        alert("Please select Dependent Type and enter Amount Claimed!");
-      }
-    }
-    else if (this.state.dependentitems.length >= 3 && isMDorDMD) {
-      alert("You have already added claim amount for Self, Spouse and Child!");
-      this.setState({
-        DependentType: "",
-        AmountClaimed: "",
-        CalculatedCHSEligibilityAmountLabel: ""
-      });
-    }
-    else if (this.state.dependentitems.length >= 2 && !isMDorDMD) {
+    else {
       alert("You have already added claim amount for Self and Spouse!");
       this.setState({
         DependentType: "",
@@ -2203,30 +2092,36 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
         CalculatedCHSEligibilityAmountLabel: ""
       });
     }
-
   };
 
   handleDelete = (index: number) => {
     const items = [...this.state.dependentitems];
     items.splice(index, 1);
-    this.setState({ dependentitems: items }, () => {
-      const totalClaimed = this.state.dependentitems.reduce((sum, item) => {
-        return sum + parseFloat(item.AmountClaimed || 0);
-      }, 0);
 
-      const totalClaimedCHSEligibilityAmount = this.state.dependentitems.reduce((sum, item) => {
-        return sum + parseFloat(item.CalculatedCHSEligibilityAmountLabel || 0);
-      }, 0);
+    let totalClaimed = 0;
+    let totalEligibility = 0;
+    let dependentTypesCSV = "";
 
-      this.setState({
-        TotalAmountClaimed: totalClaimed,
-        CHSEligibilityAmount: totalClaimedCHSEligibilityAmount,
-        DependentType: "",
-        CalculatedCHSEligibilityAmountLabel: 0
+    for (let i = 0; i < items.length; i++) {
+      const amt = parseFloat(items[i].AmountClaimed || 0);
+      const elig = parseFloat(items[i].CalculatedCHSEligibilityAmountLabel || 0);
 
+      totalClaimed += isNaN(amt) ? 0 : amt;
+      totalEligibility += isNaN(elig) ? 0 : elig;
+    }
 
+    dependentTypesCSV = items.map(x => x.DependentType).join(", ");
 
-      });
+    this.setState({
+      dependentitems: items,
+      TotalAmountClaimed: totalClaimed,
+      CHSEligibilityAmount: totalEligibility,
+
+      // ✅ keep dependent type list based on remaining rows
+      DependentType: dependentTypesCSV,
+
+      // ✅ optional: clear only calculated label display (not mandatory)
+      CalculatedCHSEligibilityAmountLabel: 0
     });
   };
 
@@ -2268,15 +2163,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   handleDropdownChangeDashTagApproverApproved = (event, option) => {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
-      // this.filterDashboardData();
-
       const { allDashboardDataTagApproverApproved, DependentType } = this.state;
-
-      ////const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverApproved : allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverApproved : DependentType === "GOVT" ? allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataTagApproverApproved.filter((item) => item.EmployeeType === DependentType);
-
       this.setState({
-        //// TagApproverApproverApprDashboard: filteredData
         TagApproverApprDashboard: filteredData
       });
 
@@ -2286,13 +2175,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   handleDropdownChangeDashTagApproverRejected = (event, option) => {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
-      // this.filterDashboardData();
-
       const { allDashboardDataTagApproverRejected, DependentType } = this.state;
-
-      ////const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverRejected : allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverRejected : DependentType === "GOVT" ? allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataTagApproverRejected.filter((item) => item.EmployeeType === DependentType);
-
       this.setState({
         TagApproverApproverRejectDashboard: filteredData
       });
@@ -2304,10 +2188,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataHR2Pending, DependentType } = this.state;
-
-      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR2Pending : allDashboardDataHR2Pending.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataHR2Pending : DependentType === "GOVT" ? allDashboardDataHR2Pending.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR2Pending.filter((item) => item.EmployeeType === DependentType);
-
       this.setState({
         HR2ApprPendingDashboard: filteredData
       });
@@ -2319,12 +2200,8 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataTagApproverPending, DependentType } = this.state;
-
-      ////const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverPending : allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataTagApproverPending : DependentType === "GOVT" ? allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataTagApproverPending.filter((item) => item.EmployeeType === DependentType);
-
       this.setState({
-        //// TagApproverApprPendingDashboard: filteredData
         TagApproverPendingDashboard: filteredData
       });
 
@@ -2334,10 +2211,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   handleDropdownChangeDashHR1Approved = (event, option) => {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
-
       const { allDashboardDataHR1Approved, DependentType } = this.state;
-
-      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR1Approved : allDashboardDataHR1Approved.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataHR1Approved : DependentType === "GOVT" ? allDashboardDataHR1Approved.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR1Approved.filter((item) => item.EmployeeType === DependentType);
       this.setState({
         HR1ApproverApprDashboard: filteredData
@@ -2350,8 +2224,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataHR1Rejected, DependentType } = this.state;
-
-      ////const filteredData = DependentType === "ALL" ? allDashboardDataHR1Rejected : allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataHR1Rejected : DependentType === "GOVT" ? allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR1Rejected.filter((item) => item.EmployeeType === DependentType);
       this.setState({
         HR1ApproverRejectDashboard: filteredData
@@ -2364,10 +2236,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     const selectedType = event.key;
     this.setState({ DependentType: selectedType }, () => {
       const { allDashboardDataHR1Pending, DependentType } = this.state;
-
-      ///  const filteredData = DependentType === "ALL" ? allDashboardDataHR1Pending : allDashboardDataHR1Pending.filter((item) => item.EmployeeType === DependentType);
       const filteredData = DependentType === "ALL" ? allDashboardDataHR1Pending : DependentType === "GOVT" ? allDashboardDataHR1Pending.filter((item) => item.EmployeeType === 'PERMANENT' && (item.Designation == 'Managing Director (MD)' || item.Designation == 'Deputy Managing Director (DMD)')) : allDashboardDataHR1Pending.filter((item) => item.EmployeeType === DependentType);
-
       this.setState({
         HR1ApprPendingDashboard: filteredData
       });
@@ -2390,7 +2259,15 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
   handleCheckboxChange = (option: string) => (
     event?: React.FormEvent<HTMLElement | HTMLInputElement>,
     checked?: boolean
-  ): void => {
+  ): boolean => {
+    const LIMIT = parseFloat(this.state.Limit) || 0;
+    if (this.state.DesignationTitle != "Managing Director (MD)" &&
+      this.state.DesignationTitle != "Deputy Managing Director (DMD)") {
+      if (LIMIT === 0) {
+        return this.fail("Please Map Limit!");
+      }
+    }
+
     let updatedOptions = [{ key: 'Self', text: 'Self' }];
 
     this.setState({
@@ -2476,12 +2353,12 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
     const showReportButton = this.state.ShowHR1Tab || this.state.ShowHR2Tab;
 
     const isMDorDMD =
-      this.state.DesignationTitle === "Managing Director (MD)" ||
-      this.state.DesignationTitle === "Deputy Managing Director (DMD)";
+      ((this.state.DesignationTitle === "Managing Director (MD)" ||
+        this.state.DesignationTitle === "Deputy Managing Director (DMD)") && this.state.EmployeeType == "PERMANENT");
 
     const isMDorDMDApprover =
-      this.state.CHSApproverView.Designation === "Managing Director (MD)" ||
-      this.state.CHSApproverView.Designation === "Deputy Managing Director (DMD)";
+      (this.state.CHSApproverView.Designation === "Managing Director (MD)" ||
+        this.state.CHSApproverView.Designation === "Deputy Managing Director (DMD)" && this.state.EmployeeType == "PERMANENT");
     return (
 
       <div className={styles.pettyCash} >
@@ -2598,17 +2475,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
                                   <td>{items.Status}</td>
-                                  {/* {
-                                      items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                                        items.AttachmentFiles.map((files) => (
-                                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                                        ))
-                                      ) : (
-                                        <td>No Attachments</td>
-                                      )
-                                    } */}
                                 </tr>
                               )
                             })
@@ -2633,8 +2500,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.userRejectedDashboard.length > 0 ? this.state.userRejectedDashboard.map((items) => {
@@ -2650,17 +2515,158 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
                                   <td>{items.Status}</td>
-                                  {/* {
-                                      items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                                        items.AttachmentFiles.map((files) => (
-                                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                                        ))
-                                      ) : (
-                                        <td>No Attachments</td>
-                                      )
-                                    } */}
+                                </tr>
+                              )
+                            })
+                              : ""
+                          }
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </PivotItem>
+
+                <PivotItem
+                  headerText="On Behalf Dashboard"
+                  itemKey="OnBehalfDashboard"
+                  hidden={!this.state.isAdminOnBehalfUser}
+                  className="tab-box"
+                >
+                  <div className="row">
+                    <div className={`${styles.tabnav} col-md-2`}>
+                      <button
+                        className={`tablink ${this.state.activeOnBehalfDashTab === 'Pending' ? 'active' : ''}`}
+                        onClick={() => this.openOnBehalfInnerTab('Pending')}
+                      >
+                        Pending
+                      </button>
+                      <button
+                        className={`tablink ${this.state.activeOnBehalfDashTab === 'Approved' ? 'active' : ''}`}
+                        onClick={() => this.openOnBehalfInnerTab('Approved')}
+                      >
+                        Approved
+                      </button>
+                      <button
+                        className={`tablink ${this.state.activeOnBehalfDashTab === 'Rejected' ? 'active' : ''}`}
+                        onClick={() => this.openOnBehalfInnerTab('Rejected')}
+                      >
+                        Rejected
+                      </button>
+                    </div>
+
+                    <div className="col-md-10 panelbodybox">
+                      {/* PENDING TAB */}
+                      <div className={`tabcontent ${this.state.activeOnBehalfDashTab === 'Pending' ? 'active' : ''}`} id="OnBehalfPending">
+                        <table className="table ">
+                          <tr>
+                            <th>View</th>
+                            <th>CHS ID</th>
+                            <th>EmployeeID</th>
+                            <th>EmployeeName</th>
+                            <th>Employee Type</th>
+                            <th>Date of Birth</th>
+                            <th>Dependent Type</th>
+                            <th>Claimed Amount</th>
+                            <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+                            <th>Status</th>
+                          </tr>
+                          {
+                            this.state.OnBehalfDashboard.length > 0 ? this.state.OnBehalfDashboard.map((items) => {
+                              return (
+                                <tr>
+                                  <td><Icon iconName='View' onClick={() => this.getHR1ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td>{items.Title}</td>
+                                  <td>{items.EmployeeID}</td>
+                                  <td>{items.EmployeeName}</td>
+                                  <td>{items.EmployeeType}</td>
+                                  <td>{moment(items.DateofBirth).format("DD/MM/YYYY")}</td>
+                                  <td>{items.DependentType}</td>
+                                  <td>{items.AmountClaimed}</td>
+                                  <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+                                  <td>{items.Status}</td>
+
+                                </tr>
+                              )
+                            })
+                              : ""
+                          }
+                        </table>
+                      </div>
+
+                      {/* APPROVED TAB */}
+                      <div className={` tabcontent ${this.state.activeOnBehalfDashTab === 'Approved' ? 'active' : ''}`} id="OnBehalfApproved">
+
+                        <table className="table ">
+                          <tr>
+                            <th>View</th>
+                            <th>CHS ID</th>
+                            <th>EmployeeID</th>
+                            <th>EmployeeName</th>
+                            <th>Employee Type</th>
+                            <th>Date of Birth</th>
+                            <th>Dependent Type</th>
+                            <th>Claimed Amount</th>
+                            <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+                            <th>Status</th>
+
+                          </tr>
+                          {
+                            this.state.OnBehalfApprovedDashboard.length > 0 ? this.state.OnBehalfApprovedDashboard.map((items) => {
+                              return (
+                                <tr>
+                                  <td><Icon iconName='View' onClick={() => this.getHR1ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td>{items.Title}</td>
+                                  <td>{items.EmployeeID}</td>
+                                  <td>{items.EmployeeName}</td>
+                                  <td>{items.EmployeeType}</td>
+                                  <td>{moment(items.DateofBirth).format("DD/MM/YYYY")}</td>
+                                  <td>{items.DependentType}</td>
+                                  <td>{items.AmountClaimed}</td>
+                                  <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+                                  <td>{items.Status}</td>
+                                </tr>
+                              )
+                            })
+                              : ""
+                          }
+                        </table>
+                      </div>
+                      {/* REJECTED TAB */}
+                      <div className={`tabcontent ${this.state.activeOnBehalfDashTab === 'Rejected' ? 'active' : ''}`} id="OnBehalfRejected">
+                        <table className="table ">
+                          <tr>
+                            <th>View</th>
+                            <th>CHS ID</th>
+                            <th>EmployeeID</th>
+                            <th>EmployeeName</th>
+                            <th>Employee Type</th>
+                            <th>Date of Birth</th>
+                            <th>Dependent Type</th>
+                            <th>Claimed Amount</th>
+                            <th>Final Approved Amount</th>
+                            <th>Financial Year</th>
+                            <th>Status</th>
+                          </tr>
+                          {
+                            this.state.OnBehalfRejectedDashboard.length > 0 ? this.state.OnBehalfRejectedDashboard.map((items) => {
+                              return (
+                                <tr>
+                                  <td><Icon iconName='View' onClick={() => this.getHR1ApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
+                                  <td>{items.Title}</td>
+                                  <td>{items.EmployeeID}</td>
+                                  <td>{items.EmployeeName}</td>
+                                  <td>{items.EmployeeType}</td>
+                                  <td>{moment(items.DateofBirth).format("DD/MM/YYYY")}</td>
+                                  <td>{items.DependentType}</td>
+                                  <td>{items.AmountClaimed}</td>
+                                  <td>{items.HRApprovedAmount === null || items.HRApprovedAmount === undefined || items.HRApprovedAmount === '' ? 0 : items.HRApprovedAmount}</td>
+                                  <td>{items.FinancialYear}</td>
+                                  <td>{items.Status}</td>
                                 </tr>
                               )
                             })
@@ -2735,8 +2741,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.HR1ApprPendingDashboard.length > 0 ? this.state.HR1ApprPendingDashboard.map((items) => {
@@ -2753,17 +2757,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
                                   <td>{items.Status}</td>
-                                  {/* {
-                                      items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                                        items.AttachmentFiles.map((files) => (
-                                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                                        ))
-                                      ) : (
-                                        <td>No Attachments</td>
-                                      )
-                                    } */}
                                 </tr>
                               )
                             })
@@ -2809,8 +2803,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.HR1ApproverApprDashboard.length > 0 ? this.state.HR1ApproverApprDashboard.map((items) => {
@@ -2826,17 +2818,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
                                   <td>{items.Status}</td>
-                                  {/* {
-                                      items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                                        items.AttachmentFiles.map((files) => (
-                                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                                        ))
-                                      ) : (
-                                        <td>No Attachments</td>
-                                      )
-                                    } */}
                                 </tr>
                               )
                             })
@@ -2882,8 +2864,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.HR1ApproverRejectDashboard.length > 0 ? this.state.HR1ApproverRejectDashboard.map((items) => {
@@ -2899,17 +2879,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
                                   <td>{items.Status}</td>
-                                  {/* {
-                                      items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                                        items.AttachmentFiles.map((files) => (
-                                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                                        ))
-                                      ) : (
-                                        <td>No Attachments</td>
-                                      )
-                                    } */}
                                 </tr>
                               )
                             })
@@ -2987,8 +2957,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.HR2ApprPendingDashboard.length > 0 ? this.state.HR2ApprPendingDashboard.map((items) => {
@@ -3005,8 +2973,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
-
                                   <td>{items.Status}</td>
 
                                 </tr>
@@ -3054,8 +3020,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.HR2ApproverApprDashboard.length > 0 ? this.state.HR2ApproverApprDashboard.map((items) => {
@@ -3118,10 +3082,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
-
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.HR2ApproverRejectDashboard.length > 0 ? this.state.HR2ApproverRejectDashboard.map((items) => {
@@ -3137,17 +3098,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.AmountClaimed}</td>
                                   <td>{items.HRApprovedAmount}</td>
                                   <td>{items.FinancialYear}</td>
-
                                   <td>{items.Status}</td>
-                                  {/* {
-                                      items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                                        items.AttachmentFiles.map((files) => (
-                                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                                        ))
-                                      ) : (
-                                        <td>No Attachments</td>
-                                      )
-                                    } */}
                                 </tr>
                               )
                             })
@@ -3158,10 +3109,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                     </div>
                   </div>
                 </PivotItem>
-                {/* new code added end  */}
-
-                {/* new code added for tabing */}
-                {/* <PivotItem headerText="Tag Approver Dashboard" itemKey="HR2" hidden={!this.state.ShowHR2Tab} className="tab-box"  > */}
                 <PivotItem headerText="Tag Approver Dashboard" itemKey="TagApprover" hidden={!this.state.ShowTagApproverTab} className="tab-box"  >
 
                   <div className="row">
@@ -3295,8 +3242,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.TagApproverApprDashboard.length > 0 ? this.state.TagApproverApprDashboard.map((items) => {
@@ -3359,14 +3304,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                             <th>Claimed Amount</th>
                             <th>Final Approved Amount</th>
                             <th>Financial Year</th>
-
                             <th>Status</th>
-                            {/* <th>View Doc.</th> */}
-
                           </tr>
                           {
                             this.state.TagApproverApproverRejectDashboard.length > 0 ? this.state.TagApproverApproverRejectDashboard.map((items) => {
-                              /// this.state.TagApproverRejectDashboard.length > 0 ? this.state.TagApproverRejectDashboard.map((items) => {
                               return (
                                 <tr>
                                   <td><Icon iconName='View' onClick={() => this.getTagApproverView(items)} title='View' className={styles.iconcolor}></Icon></td>
@@ -3381,15 +3322,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                                   <td>{items.FinancialYear}</td>
 
                                   <td>{items.Status}</td>
-                                  {/* {
-                    items !== undefined && items !== null && items !== "" && items.AttachmentFiles && items.AttachmentFiles.length > 0 ? (
-                      items.AttachmentFiles.map((files) => (
-                        <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                      ))
-                    ) : (
-                      <td>No Attachments</td>
-                    )
-                  } */}
                                 </tr>
                               )
                             })
@@ -3411,7 +3343,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
           dialogContentProps={{
             type: DialogType.normal,
             title: 'Comprehensive Health Checkup Request',
-            // subText:`Financial Year : ${this.state.CurrentFinancialYear}`,
             closeButtonAriaLabel: 'Close',
           }}
           containerClassName={'ms-dialogMainOverride ' + styles.textDialog}
@@ -3428,7 +3359,7 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                     {this.state.CurrentFinancialYear}
                   </div>
                 </div>
-                <div className="row form-group" hidden={(!this.state.ShowHR1Tab) && (!this.state.ShowHR2Tab)} >
+                <div className="row form-group" hidden={(!this.state.ShowHR1Tab) && (!this.state.ShowHR2Tab) && (!this.state.isAdminOnBehalfUser)} >
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">On behalf of:</Label>
                   </div>
@@ -3437,13 +3368,18 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       placeHolder="Select Option"
                       options={onbehalfoption}
                       selectedKey={this.state.OnBehalf}
-                      onChanged={(e, option) => {
+                      onChanged={async (e, option) => {
                         if (e.key === "Yes") {
                           this.setState({
                             OnBehalf: e.key, DependentType: "",
-                            CalculatedCHSEligibilityAmountLabel: "", showhideEmployeeNameLab: true
+                            CalculatedCHSEligibilityAmountLabel: "",
+                            showhideEmployeeNameLab: true
                           });
-                          this.getAllEmployee();
+                          if (this.state.isAdminOnBehalfUser) {
+                            await this.loadAdminOnBehalfEmployees(this.state.EmployeeSubGroupIds);
+                          } else {
+                            this.getAllEmployee();
+                          }
                         }
                         if (e.key === "No") {
                           this.getEmployee();
@@ -3456,11 +3392,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       className="dropdown-style"
                     />
                   </div>
-
-                  {/* //    CurrentFinancialYear=  await this.getFinancialYear() */}
-
-
-
                   <div className="col-sm-2" hidden={!this.state.showhideEmployeeNameLab}>
                     <Label className="control-Label font-weight-bold">Employee Name</Label>
                   </div>
@@ -3470,7 +3401,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       autoFocus
                       clearable
                       value={selectedOption}
-                      // value={this.state.AllEmployeeCollObj.find((item) => item.label === this.state.Id)}
                       onChange={(selectedOption) => this.getSelectedEmployeeDetail(selectedOption)}
                       options={this.state.AllEmployeeCollObj}
                     />
@@ -3678,54 +3608,9 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                     </div>
                   </div>
                 </div>
-
-
-
               </div>
             </div>
-            {/* <div className="">
-              <div className="col-sm-2">
-                <label className="control-Label font-weight-bold">Attachment <span >*</span></label>
-              </div>
-              {/* <div className='col-md-2'>
-                <input type="file" id="fileUpload" multiple onChange={this._handleFileChange} />
-              </div> 
-              <div className="col-sm-8">
-                <input
-                  type="file"
-                  id="fileUpload"
-                  multiple
-                  onChange={this._handleFileChange}
-                />
-                <span
-                  style={{
-                    // display: "block",
-                    // backgroundColor: "yellow",
-                    color: "red",
-                    // padding: "10px",
-                    // border: "1px solid red",
-                    // borderRadius: "5px",
-                    // marginTop: "10px",
-                    textAlign: "left",
-                    fontSize: 10,
-                    // fontWeight: "bold"
-                  }}
-                > Note : File name  Allowed characters: letters, numbers, dots, underscores, and spaces.</span>
-                 <div>
-    {this.state?.files.length > 0 && (
-      <ul>
-        {this.state.files.map((file, index) => (
-          <li key={index}>{file.name}</li>
-        ))}
-      </ul>
-    )}
-  </div> 
-              </div>
-
-
-
-            </div>*/}
-            <div className="col-sm-12" style={{ padding: 0 }} hidden={!this.state.showhideEmployeeNameLab && this.state.EmployeeType != "RETIRED"} >
+            <div className="col-sm-12" style={{ padding: 0 }} hidden={(!this.state.showhideEmployeeNameLab && this.state.EmployeeType != "RETIRED") || this.state.isAdminOnBehalfUser} >
               <Label className="control-Label font-weight-bold col-md-2">HR Remarks For Retired Employee</Label>
               <TextField type='text' className='col-md-8'
                 name="ExpenseDetails.HRRemarkForRetired"
@@ -3745,7 +3630,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
             >
               {this.state.isSubmitting ? <Spinner size={SpinnerSize.small} /> : "Submit"}
             </PrimaryButton>
-            {/* <PrimaryButton className={styles.custombtn + " " + "mr-2"} onClick={() => this.BtnSubmitRequest()} >Submit</PrimaryButton> */}
             <PrimaryButton onClick={() => this.closeDialog()} >Close</PrimaryButton>
           </div>
         </Dialog>
@@ -3771,9 +3655,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                     <Label className="control-Label">{this.state.CHSApproverView.FinancialYear}</Label>
                   </div>
                 </div>
-
-
-
                 <div className="row form-group">
                   <div className="col-sm-2">
                     <Label className="control-Label font-weight-bold">CHS Request No</Label>
@@ -3946,22 +3827,6 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
 
               </div>
             </div>
-            { /*<div className="">
-              <div className='col-sm-2'>
-                <label className="control-Label font-weight-bold">Attachment</label>
-              </div>
-              <div className='col-sm-8'>
-                {
-                  this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
-                    this.state.CHSApproverView.AttachmentFiles.map((files) => (
-                      <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                    ))
-                  ) : (
-                    <div>No Attachments</div>
-                  )
-                }
-              </div>
-            </div>*/}
             <div className="col-sm-12" style={{ padding: 0 }}>
               <Label className="control-Label font-weight-bold col-md-2">Remarks</Label>
               <TextField type='text' className='col-md-8'
@@ -4140,10 +4005,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 )}
                 <div className="row form-group">
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.FinalAmount === null ||
                         this.state.CHSApproverView.FinalAmount === undefined ||
@@ -4152,10 +4017,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         : this.state.CHSApproverView.FinalAmount}
                     </Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
                   </div>
-                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.HR1Remark === null ||
                         this.state.CHSApproverView.HR1Remark === undefined ||
@@ -4178,10 +4043,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         : this.state.CHSApproverView.HRApprovedAmount}
                     </Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR2 Remarks</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.HR2Remark === null ||
                         this.state.CHSApproverView.HR2Remark === undefined ||
@@ -4192,27 +4057,26 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
 
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
+                    <Label className="control-Label font-weight-bold">TAG Remarks</Label>
+                  </div>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.TagApproverRemark === null ||
+                        this.state.CHSApproverView.TagApproverRemark === undefined ||
+                        this.state.CHSApproverView.TagApproverRemark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.TagApproverRemark}
+                    </Label>
+                  </div>
+                </div>
+
 
               </div>
             </div>
-            <div className="panel panel-default">
+            <div className="panel panel-default" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
               <div className='panel-body'>
-                { /* <div className="row form-group">
-                  <div className='col-sm-2'>
-                    <label className="control-Label font-weight-bold">Attachment</label>
-                  </div>
-                  <div className='col-sm-8'>
-                    {
-                      this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
-                        this.state.CHSApproverView.AttachmentFiles.map((files) => (
-                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                        ))
-                      ) : (
-                        <div>No Attachments</div>
-                      )
-                    }
-                  </div>
-                </div> */}
                 <div className="row form-group">
                   <div className="col-sm-2" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
                     <Label className="control-Label font-weight-bold">HR Remarks For Retired Employee</Label>
@@ -4397,20 +4261,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 )}
                 <div className="row form-group">
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label "> {this.state.CHSApproverView.FinalAmount === null ||
                       this.state.CHSApproverView.FinalAmount === undefined ||
                       this.state.CHSApproverView.FinalAmount === ''
                       ? 0
                       : this.state.CHSApproverView.FinalAmount}</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
                   </div>
-                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label "> {this.state.CHSApproverView.HR1Remark === null ||
                       this.state.CHSApproverView.HR1Remark === undefined ||
                       this.state.CHSApproverView.HR1Remark === ''
@@ -4418,50 +4282,36 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                       : this.state.CHSApproverView.HR1Remark}</Label>
                   </div>
                 </div>
-                <div className="col-sm-2" >
-                  <Label className="control-Label font-weight-bold">Final  Approved Amount</Label>
-                </div>
-                <div className="col-sm-2" >
-                  <TextField type='number'
-                    name="ExpenseDetails.HR2FinalAmount"
-                    onChanged={(e: any) => this.handleInputChangeadd(event)}></TextField>
-                </div>
-                <div className="col-md-7">
-                  <span
-                    hidden={!this.state.ExpenseDetailsAlert}
-                    style={{
-                      display: "block",
-                      backgroundColor: "yellow",
-                      color: "red",
-                      padding: "10px",
-                      border: "1px solid red",
-                      borderRadius: "5px",
-                      marginTop: "10px",
-                      textAlign: "left",
-                      fontWeight: "bold"
-                    }}
-                  >
-                    Amount Claimed should not be more than the displayed CHS eligibility amount
-                  </span>
+                <div className="row form-group">
+                  <div className="col-sm-2" >
+                    <Label className="control-Label font-weight-bold">Final  Approved Amount</Label>
+                  </div>
+                  <div className="col-sm-2" >
+                    <TextField type='number'
+                      name="ExpenseDetails.HR2FinalAmount"
+                      onChanged={(e: any) => this.handleInputChangeadd(event)}></TextField>
+                  </div>
+                  <div className="col-sm-8">
+                    <span
+                      hidden={!this.state.ExpenseDetailsAlert}
+                      style={{
+                        display: "block",
+                        backgroundColor: "yellow",
+                        color: "red",
+                        padding: "10px",
+                        border: "1px solid red",
+                        borderRadius: "5px",
+                        marginTop: "10px",
+                        textAlign: "left",
+                        fontWeight: "bold"
+                      }}
+                    >
+                      Amount Claimed should not be more than the displayed CHS eligibility amount
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-            { /*<div className="row form-group">
-              <div className='col-sm-2'>
-                <label className="control-Label font-weight-bold">Attachment</label>
-              </div>
-              <div className='col-sm-8'>
-                {
-                  this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
-                    this.state.CHSApproverView.AttachmentFiles.map((files) => (
-                      <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                    ))
-                  ) : (
-                    <div>No Attachments</div>
-                  )
-                }
-              </div>
-            </div> */}
             <div className="col-sm-12" >
               <Label className="control-Label font-weight-bold col-md-2">Remarks</Label>
               <TextField type='text' className='col-md-8'
@@ -4640,20 +4490,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 )}
                 <div className="row form-group">
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label "> {this.state.CHSApproverView.FinalAmount === null ||
                       this.state.CHSApproverView.FinalAmount === undefined ||
                       this.state.CHSApproverView.FinalAmount === ''
                       ? 0
                       : this.state.CHSApproverView.FinalAmount}</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
                   </div>
-                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label "> {this.state.CHSApproverView.HR1Remark === null ||
                       this.state.CHSApproverView.HR1Remark === undefined ||
                       this.state.CHSApproverView.HR1Remark === ''
@@ -4673,10 +4523,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         ? 0
                         : this.state.CHSApproverView.HRApprovedAmount}</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR2 Remarks</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.HR2Remark === null ||
                         this.state.CHSApproverView.HR2Remark === undefined ||
@@ -4688,27 +4538,25 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                 </div>
 
 
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
+                    <Label className="control-Label font-weight-bold">TAG Remarks</Label>
+                  </div>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.TagApproverRemark === null ||
+                        this.state.CHSApproverView.TagApproverRemark === undefined ||
+                        this.state.CHSApproverView.TagApproverRemark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.TagApproverRemark}
+                    </Label>
+                  </div>
+                </div>
 
               </div>
             </div>
-            <div className="panel panel-default">
+            <div className="panel panel-default" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"}>
               <div className='panel-body'>
-                { /* <div className="row form-group">
-                  <div className='col-sm-2'>
-                    <label className="control-Label font-weight-bold">Attachment</label>
-                  </div>
-                  <div className='col-sm-8'>
-                    {
-                      this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
-                        this.state.CHSApproverView.AttachmentFiles.map((files) => (
-                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                        ))
-                      ) : (
-                        <div>No Attachments</div>
-                      )
-                    }
-                  </div>
-                </div> */}
                 <div className="row form-group">
                   <div className="col-sm-2" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
                     <Label className="control-Label font-weight-bold">HR Remarks For Retired Employee</Label>
@@ -4893,10 +4741,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 )}
                 <div className="row form-group">
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.FinalAmount === null ||
                         this.state.CHSApproverView.FinalAmount === undefined ||
@@ -4905,10 +4753,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         : this.state.CHSApproverView.FinalAmount}
                     </Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
                   </div>
-                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.HR1Remark === null ||
                         this.state.CHSApproverView.HR1Remark === undefined ||
@@ -4931,10 +4779,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         : this.state.CHSApproverView.HRApprovedAmount}
                     </Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR2 Remarks</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.HR2Remark === null ||
                         this.state.CHSApproverView.HR2Remark === undefined ||
@@ -4945,27 +4793,25 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
 
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
+                    <Label className="control-Label font-weight-bold">TAG Remarks</Label>
+                  </div>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.TagApproverRemark === null ||
+                        this.state.CHSApproverView.TagApproverRemark === undefined ||
+                        this.state.CHSApproverView.TagApproverRemark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.TagApproverRemark}
+                    </Label>
+                  </div>
+                </div>
 
               </div>
             </div>
-            <div className="panel panel-default">
+            <div className="panel panel-default" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"}>
               <div className='panel-body'>
-                { /*   <div className="row form-group">
-                  <div className='col-sm-2'>
-                    <label className="control-Label font-weight-bold">Attachment</label>
-                  </div>
-                  <div className='col-sm-8'>
-                    {
-                      this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
-                        this.state.CHSApproverView.AttachmentFiles.map((files) => (
-                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                        ))
-                      ) : (
-                        <div>No Attachments</div>
-                      )
-                    }
-                  </div>
-                </div> */}
                 <div className="row form-group">
                   <div className="col-sm-2" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
                     <Label className="control-Label font-weight-bold">HR Remarks For Retired Employee</Label>
@@ -5160,20 +5006,20 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 )}
                 <div className="row form-group">
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Approved Amount</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label "> {this.state.CHSApproverView.FinalAmount === null ||
                       this.state.CHSApproverView.FinalAmount === undefined ||
                       this.state.CHSApproverView.FinalAmount === ''
                       ? 0
                       : this.state.CHSApproverView.FinalAmount}</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label font-weight-bold">HR1 Remarks</Label>
                   </div>
-                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label "> {this.state.CHSApproverView.HR1Remark === null ||
                       this.state.CHSApproverView.HR1Remark === undefined ||
                       this.state.CHSApproverView.HR1Remark === ''
@@ -5193,10 +5039,10 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                         ? 0
                         : this.state.CHSApproverView.HRApprovedAmount}</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired} >
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
                     <Label className="control-Label font-weight-bold">HR2 Remarks</Label>
                   </div>
-                  <div className="col-sm-2" hidden={this.state.isOnBehalfandRetired}>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
                     <Label className="control-Label ">
                       {this.state.CHSApproverView.HR2Remark === null ||
                         this.state.CHSApproverView.HR2Remark === undefined ||
@@ -5207,28 +5053,25 @@ export default class CHSCreation extends React.Component<IChsModuleProps, any> {
                   </div>
                 </div>
 
-
+                <div className="row form-group">
+                  <div className="col-sm-2" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser} >
+                    <Label className="control-Label font-weight-bold">TAG Remarks</Label>
+                  </div>
+                  <div className="col-sm-6" hidden={!this.state.isOnBehalfandRetired && !this.state.isAdminOnBehalfUser}>
+                    <Label className="control-Label ">
+                      {this.state.CHSApproverView.TagApproverRemark === null ||
+                        this.state.CHSApproverView.TagApproverRemark === undefined ||
+                        this.state.CHSApproverView.TagApproverRemark === ''
+                        ? 'NA'
+                        : this.state.CHSApproverView.TagApproverRemark}
+                    </Label>
+                  </div>
+                </div>
 
               </div>
             </div>
-            <div className="panel panel-default">
+            <div className="panel panel-default" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"}>
               <div className='panel-body'>
-                { /* <div className="row form-group">
-                  <div className='col-sm-2'>
-                    <label className="control-Label font-weight-bold">Attachment</label>
-                  </div>
-                  <div className='col-sm-8'>
-                    {
-                      this.state.CHSApproverView !== undefined && this.state.CHSApproverView !== null && this.state.CHSApproverView !== "" && this.state.CHSApproverView.AttachmentFiles && this.state.CHSApproverView.AttachmentFiles.length > 0 ? (
-                        this.state.CHSApproverView.AttachmentFiles.map((files) => (
-                          <li style={{ listStyle: 'decimal', color: '#428bca' }}><a href={files.ServerRelativeUrl} target='_blank'>{files.FileName}</a></li>
-                        ))
-                      ) : (
-                        <div>No Attachments</div>
-                      )
-                    }
-                  </div>
-                </div>*/}
                 <div className="row form-group">
                   <div className="col-sm-2" hidden={this.state.CHSApproverView.EmployeeType != "RETIRED"} >
                     <Label className="control-Label font-weight-bold">HR Remarks For Retired Employee</Label>

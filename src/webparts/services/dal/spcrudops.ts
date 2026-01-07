@@ -26,6 +26,7 @@ export interface ISPCRUDOPS {
     currentProfile(props: IChsModuleProps): Promise<any>;
     currentUser(props: IChsModuleProps): Promise<any>;
     currentUserGroup(props: IChsModuleProps): Promise<any>;
+    currentUserGroupAnotherSiteCollection(props: IChsModuleProps): Promise<any>;
     getAllItemsRecursively(listName: string, columnsToRetrieve: string, columnsToExpand: string, filters: string
         , orderby: { column: string, isAscending: boolean }, items: any[], startItemId?: number, itemCount?: number, props?: IChsModuleProps): Promise<any>;
 }
@@ -159,6 +160,14 @@ export default async function SPCRUDOPS(): Promise<ISPCRUDOPS> {
             return response;
         })
     };
+     const currentUserGroupAnotherSiteCollection = async (props: IChsModuleProps) => {
+        let web = Web(ENV_CONFIG.rootSiteUrl);
+        return await web.currentUser.groups.get().then((response) => {
+            //return await sp.web.currentUser.get().then((response)=>{
+            console.log(response);
+            return response;
+        })
+    };
     const getAllItemsRecursively = async (listName: string, columnsToRetrieve: string, columnsToExpand: string, filters: string, orderby: { column: string, isAscending: boolean }, items1: any[] = [], startItemId?: number, itemCount?: number, props?: IChsModuleProps) => {
         const query = startItemId > 0 ? `ID gt ${startItemId}` : "";
         let web = Web(props.currentSPContext.pageContext.web.absoluteUrl);
@@ -194,6 +203,7 @@ export default async function SPCRUDOPS(): Promise<ISPCRUDOPS> {
         currentProfile,
         currentUser,
         currentUserGroup,
+        currentUserGroupAnotherSiteCollection,
         getAllItemsRecursively,
         addAttchmentInList
     };

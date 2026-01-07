@@ -22,6 +22,7 @@ export interface ISPCRUD {
     currentProfile(props: IChsModuleProps): Promise<any>;
     currentUser(props: IChsModuleProps): Promise<any>;
     currentUserGroup(props: IChsModuleProps): Promise<any>;
+    currentUserGroupAnotherSiteCollection(props: IChsModuleProps): Promise<any>;
     addAttchmentInList(attFiles: File, listName: string, itemId: number, fileName: string, props: IChsModuleProps): Promise<any>;
     getAllItemsRecursively(listName: string, columnsToRetrieve: string, columnsToExpand: string, filters: string
         , orderby: { column: string, isAscending: boolean }, items: any[], startItemId?: number, itemCount?: number, props?: IChsModuleProps): Promise<any>;
@@ -91,6 +92,10 @@ export default async function SPCRUD(): Promise<ISPCRUD> {
         const result: any = await (await spCrudOps).currentUserGroup( props);
         return result;
     };
+     const currentUserGroupAnotherSiteCollection = async (props: IChsModuleProps) => {
+        const result: any = await (await spCrudOps).currentUserGroupAnotherSiteCollection( props);
+        return result;
+    };
     const getAllItemsRecursively = async (listName: string, columnsToRetrieve: string, columnsToExpand: string, filters: string
         , orderby: { column: string, isAscending: boolean }, items1: any[] = [], startItemId?: number, itemCount?: number, props?: IChsModuleProps) => {
         const items: any[] = await (await spCrudOps).getAllItemsRecursively(listName, columnsToRetrieve, columnsToExpand, filters, orderby, items1, startItemId, itemCount, props);
@@ -116,6 +121,7 @@ export default async function SPCRUD(): Promise<ISPCRUD> {
         currentProfile,
         currentUser,
         currentUserGroup,
+        currentUserGroupAnotherSiteCollection,
         getAllItemsRecursively,
         addAttchmentInList
     };

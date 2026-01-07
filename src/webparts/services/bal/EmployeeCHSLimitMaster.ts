@@ -20,14 +20,6 @@ export default function EmployeeCHSLimitMasterOps() {
             );
             if (results && results.length > 0) {
                 const firstResult = results;
-                // const employee: IEmployeeCHSLimitMaster = {
-                //     Id: firstResult.Id,
-                //     Title: firstResult.Title,
-                //     Limit: firstResult.Limit,
-                //     EmployeeType: firstResult.EmployeeType,
-                //     Sacle: firstResult.Sacle.Title,
-                //     Designation: firstResult.Designation.Title
-                //  };
                 return firstResult;
             } else {
                 console.warn("No employee found for the current user.");
